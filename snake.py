@@ -5,7 +5,7 @@ from kivy.graphics import Rectangle, Color
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.label import Label
-from kivy.core.audio import SoundLoader  # Import SoundLoader
+from kivy.core.audio import SoundLoader
 
 class SnakeGame(Widget):
     def __init__(self, **kwargs):
@@ -54,13 +54,15 @@ class SnakeGame(Widget):
         self.snake = [new_head] + self.snake[:-1]  # Move the snake forward
         
         self.canvas.clear()  # Clear previous frame
+        
+        # Drawing snake using instructions for performance
         self.snake_color = Color(0, 1, 0)  # Set snake color to green
         for segment in self.snake:
             x, y = segment
             with self.canvas:
                 Rectangle(pos=(x * 20, y * 20), size=(20, 20))
 
-        # Draw the apple
+        # Drawing apple
         self.apple_color = Color(1, 0, 0)  # Set apple color to red
         x, y = self.apple
         with self.canvas:
