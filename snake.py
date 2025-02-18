@@ -85,7 +85,7 @@ class SnakeGame(Widget):
 
     def reset_game(self):
         """Reset the game when the snake dies"""
-        self.snake = [(10, 10), (9, 10), (8, 10)]  # Reset snake position
+        self.snake = [(10, 10)]  # Reset snake position
         self.snake_direction = (1, 0)  # Reset direction to right
         self.apple = self.generate_apple()  # New random apple
         self.score = 0
