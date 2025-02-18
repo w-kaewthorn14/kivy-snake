@@ -5,6 +5,7 @@ from kivy.graphics import Rectangle, Color
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.label import Label
+from kivy.core.audio import SoundLoader  # Import SoundLoader
 
 class SnakeGame(Widget):
     def __init__(self, **kwargs):
@@ -18,6 +19,10 @@ class SnakeGame(Widget):
         self.update_label = Label(text="Score: 0", pos=(10, Window.height - 30))
         self.add_widget(self.update_label)
         
+        # Load sound effects
+        self.eat_sound = SoundLoader.load('eat_sound.mp3')  # Assuming you have an eat_sound.mp3 file
+        self.game_over_sound = SoundLoader.load('game_over.mp3')  # Assuming you have a game_over.mp3 file
+
         Clock.schedule_interval(self.update, 0.1)  # Update the game every 0.1 second
         Window.bind(on_key_down=self.on_key_down)
 
@@ -42,6 +47,7 @@ class SnakeGame(Widget):
         if (new_head[0] < 0 or new_head[0] >= Window.width // 20 or
             new_head[1] < 0 or new_head[1] >= Window.height // 20 or
             new_head in self.snake):
+            self.game_over_sound.play()  # Play game over sound
             self.reset_game()  # Reset the game if snake dies
             return
         
@@ -65,6 +71,7 @@ class SnakeGame(Widget):
             self.snake.append(self.snake[-1])  # Add new segment to snake
             self.score += 1
             self.update_label.text = f"Score: {self.score}"
+            self.eat_sound.play()  # Play eat apple sound
             self.apple = self.generate_apple()  # Generate new apple position
 
     def generate_apple(self):
