@@ -11,10 +11,11 @@ class SnakeGame(Widget):
     def __init__(self, **kwargs):
         super(SnakeGame, self).__init__(**kwargs)
         
-        self.snake = [(10, 10), (9, 10), (8, 10)]  # snake head + body
+        self.snake = [(10, 10)]  # snake head + body
         self.snake_direction = (1, 0)  # Initial direction (right)
         self.apple = (random.randint(0, 19), random.randint(0, 19))  # Random apple position
         self.score = 0
+        self.snake_size = 20  # Size of the snake and food block
         
         self.update_label = Label(text="Score: 0", pos=(10, Window.height - 30))
         self.add_widget(self.update_label)
@@ -44,8 +45,8 @@ class SnakeGame(Widget):
         new_head = (self.snake[0][0] + self.snake_direction[0], self.snake[0][1] + self.snake_direction[1])
         
         # Check if snake hits the wall or itself
-        if (new_head[0] < 0 or new_head[0] >= Window.width // 20 or
-            new_head[1] < 0 or new_head[1] >= Window.height // 20 or
+        if (new_head[0] < 0 or new_head[0] >= Window.width // self.snake_size or
+            new_head[1] < 0 or new_head[1] >= Window.height // self.snake_size or
             new_head in self.snake):
             self.game_over_sound.play()  # Play game over sound
             self.reset_game()  # Reset the game if snake dies
@@ -55,18 +56,13 @@ class SnakeGame(Widget):
         
         self.canvas.clear()  # Clear previous frame
         
-        # Drawing snake using instructions for performance
-        self.snake_color = Color(0, 1, 0)  # Set snake color to green
-        for segment in self.snake:
-            x, y = segment
-            with self.canvas:
-                Rectangle(pos=(x * 20, y * 20), size=(20, 20))
-
+        self.draw_snake()  # Draw the snake
+        
         # Drawing apple
         self.apple_color = Color(1, 0, 0)  # Set apple color to red
         x, y = self.apple
         with self.canvas:
-            Rectangle(pos=(x * 20, y * 20), size=(20, 20))
+            Rectangle(pos=(x * self.snake_size, y * self.snake_size), size=(self.snake_size, self.snake_size))
         
         # Check if snake eats the apple
         if new_head == self.apple:
@@ -91,6 +87,14 @@ class SnakeGame(Widget):
         self.score = 0
         self.update_label.text = "Score: 0"  # Reset score
         self.canvas.clear()  # Clear the canvas
+
+    def draw_snake(self):
+        """Draw the snake"""
+        with self.canvas:
+            Color(0, 1, 0)  # Snake color is green
+            for x, y in self.snake:
+                Rectangle(pos=(x * self.snake_size, y * self.snake_size),
+                          size=(self.snake_size, self.snake_size))
 
 class SnakeApp(App):
     def build(self):
