@@ -54,5 +54,4 @@ class SnakeApp(App):
         return SnakeGame()
 
 if __name__ == '__main__':
-    SnakeApp().run()  
-
+    SnakeApp().run()
