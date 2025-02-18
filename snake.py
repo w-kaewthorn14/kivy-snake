@@ -15,6 +15,9 @@ class SnakeGame(Widget):
         self.apple = (random.randint(0, 19), random.randint(0, 19))  # Random apple position
         self.score = 0
         
+        self.update_label = Label(text="Score: 0", pos=(10, Window.height - 30))
+        self.add_widget(self.update_label)
+        
         Clock.schedule_interval(self.update, 0.1)  # Update the game every 0.1 second
         Window.bind(on_key_down=self.on_key_down)
 
@@ -48,6 +51,13 @@ class SnakeGame(Widget):
         x, y = self.apple
         with self.canvas:
             Rectangle(pos=(x * 20, y * 20), size=(20, 20))
+        
+        # Check if snake eats the apple
+        if new_head == self.apple:
+            self.snake.append(self.snake[-1])  # Add new segment to snake
+            self.score += 1
+            self.update_label.text = f"Score: {self.score}"
+            self.apple = (random.randint(0, 19), random.randint(0, 19))  # New apple position
 
 class SnakeApp(App):
     def build(self):
