@@ -13,7 +13,7 @@ class SnakeGame(Widget):
         
         self.snake = [(10, 10)]  # snake head + body
         self.snake_direction = (1, 0)  # Initial direction (right)
-        self.apple = (random.randint(0, 19), random.randint(0, 19))  # Random apple position
+        self.food = (random.randint(0, 19), random.randint(0, 19))  # Random food position
         self.score = 0
         self.snake_size = 20  # Size of the snake and food block
         
@@ -57,33 +57,28 @@ class SnakeGame(Widget):
         self.canvas.clear()  # Clear previous frame
         
         self.draw_snake()  # Draw the snake
+        self.draw_food()   # Draw the food
         
-        # Drawing apple
-        self.apple_color = Color(1, 0, 0)  # Set apple color to red
-        x, y = self.apple
-        with self.canvas:
-            Rectangle(pos=(x * self.snake_size, y * self.snake_size), size=(self.snake_size, self.snake_size))
-        
-        # Check if snake eats the apple
-        if new_head == self.apple:
+        # Check if snake eats the food
+        if new_head == self.food:
             self.snake.append(self.snake[-1])  # Add new segment to snake
             self.score += 1
             self.update_label.text = f"Score: {self.score}"
-            self.eat_sound.play()  # Play eat apple sound
-            self.apple = self.generate_apple()  # Generate new apple position
+            self.eat_sound.play()  # Play eat food sound
+            self.food = self.generate_food()  # Generate new food position
 
-    def generate_apple(self):
-        """Generate new apple position that does not overlap with the snake"""
+    def generate_food(self):
+        """Generate new food position that does not overlap with the snake"""
         while True:
-            apple = (random.randint(0, 19), random.randint(0, 19))
-            if apple not in self.snake:
-                return apple
+            food = (random.randint(0, 19), random.randint(0, 19))
+            if food not in self.snake:
+                return food
 
     def reset_game(self):
         """Reset the game when the snake dies"""
         self.snake = [(10, 10)]  # Reset snake position
         self.snake_direction = (1, 0)  # Reset direction to right
-        self.apple = self.generate_apple()  # New random apple
+        self.food = self.generate_food()  # New random food
         self.score = 0
         self.update_label.text = "Score: 0"  # Reset score
         self.canvas.clear()  # Clear the canvas
@@ -95,6 +90,14 @@ class SnakeGame(Widget):
             for x, y in self.snake:
                 Rectangle(pos=(x * self.snake_size, y * self.snake_size),
                           size=(self.snake_size, self.snake_size))
+
+    def draw_food(self):
+        """Draw the food"""
+        with self.canvas:
+            Color(1, 0, 0)  # Food color is red
+            x, y = self.food
+            Rectangle(pos=(x * self.snake_size, y * self.snake_size),
+                      size=(self.snake_size, self.snake_size))
 
 class SnakeApp(App):
     def build(self):
