@@ -37,6 +37,14 @@ class SnakeGame(Widget):
 
     def update(self, dt):
         new_head = (self.snake[0][0] + self.snake_direction[0], self.snake[0][1] + self.snake_direction[1])
+        
+        # Check if snake hits the wall or itself
+        if (new_head[0] < 0 or new_head[0] >= Window.width // 20 or
+            new_head[1] < 0 or new_head[1] >= Window.height // 20 or
+            new_head in self.snake):
+            self.reset_game()  # Reset the game if snake dies
+            return
+        
         self.snake = [new_head] + self.snake[:-1]  # Move the snake forward
         
         self.canvas.clear()  # Clear previous frame
@@ -58,6 +66,15 @@ class SnakeGame(Widget):
             self.score += 1
             self.update_label.text = f"Score: {self.score}"
             self.apple = (random.randint(0, 19), random.randint(0, 19))  # New apple position
+
+    def reset_game(self):
+        """Reset the game when the snake dies"""
+        self.snake = [(10, 10), (9, 10), (8, 10)]  # Reset snake position
+        self.snake_direction = (1, 0)  # Reset direction to right
+        self.apple = (random.randint(0, 19), random.randint(0, 19))  # New random apple
+        self.score = 0
+        self.update_label.text = "Score: 0"  # Reset score
+        self.canvas.clear()  # Clear the canvas
 
 class SnakeApp(App):
     def build(self):
