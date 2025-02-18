@@ -65,13 +65,20 @@ class SnakeGame(Widget):
             self.snake.append(self.snake[-1])  # Add new segment to snake
             self.score += 1
             self.update_label.text = f"Score: {self.score}"
-            self.apple = (random.randint(0, 19), random.randint(0, 19))  # New apple position
+            self.apple = self.generate_apple()  # Generate new apple position
+
+    def generate_apple(self):
+        """Generate new apple position that does not overlap with the snake"""
+        while True:
+            apple = (random.randint(0, 19), random.randint(0, 19))
+            if apple not in self.snake:
+                return apple
 
     def reset_game(self):
         """Reset the game when the snake dies"""
         self.snake = [(10, 10), (9, 10), (8, 10)]  # Reset snake position
         self.snake_direction = (1, 0)  # Reset direction to right
-        self.apple = (random.randint(0, 19), random.randint(0, 19))  # New random apple
+        self.apple = self.generate_apple()  # New random apple
         self.score = 0
         self.update_label.text = "Score: 0"  # Reset score
         self.canvas.clear()  # Clear the canvas
