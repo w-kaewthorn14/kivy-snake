@@ -47,7 +47,9 @@ class SnakeGame(Screen):
         self.snake_size = 20
         self.paused = False
         
-        self.update_label = Label(text="Score: 0", pos=(10, Window.height - 30))
+        self.update_label = Label(text="Score: 0", font_size=20,
+                                  size_hint=(None, None), size=(100, 40),
+                                  pos=(10, Window.height - 40))
         self.add_widget(self.update_label)
         
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
