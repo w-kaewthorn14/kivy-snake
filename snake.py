@@ -13,7 +13,9 @@ from kivy.core.audio import SoundLoader
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        layout = BoxLayout(orientation='vertical', spacing=10, padding=50)
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
+        layout.size = (300, 200)
+        layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
         
         start_button = Button(text='Start Game', font_size=24, size_hint=(None, None), size=(200, 50))
         exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
