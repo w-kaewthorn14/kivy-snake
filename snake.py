@@ -16,9 +16,13 @@ class MenuScreen(Screen):
         layout = BoxLayout(orientation='vertical', spacing=10, padding=50)
         
         start_button = Button(text='Start Game', font_size=24, size_hint=(None, None), size=(200, 50))
+        exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
         start_button.bind(on_release=self.start_game)
+        exit_button.bind(on_release=self.exit_game)
+
         layout.add_widget(start_button)
-        
+        layout.add_widget(exit_button)
+
         self.add_widget(layout)
     
     def start_game(self, instance):
