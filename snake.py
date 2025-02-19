@@ -44,12 +44,18 @@ class SnakeGame(Screen):
         self.snake_direction = (1, 0)
         self.food = (random.randint(0, 19), random.randint(0, 19))
         self.score = 0
+        self.best_score = 0  # Best score tracking
         self.snake_size = 20
         self.paused = False
         
+        self.best_score_label = Label(text="Best: 0", font_size=20,
+                                      size_hint=(None, None), size=(100, 40),
+                                      pos=(10, Window.height - 30))
         self.update_label = Label(text="Score: 0", font_size=20,
                                   size_hint=(None, None), size=(100, 40),
-                                  pos=(10, Window.height - 40))
+                                  pos=(10, Window.height - 60))
+        
+        self.add_widget(self.best_score_label)
         self.add_widget(self.update_label)
         
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
@@ -108,6 +114,9 @@ class SnakeGame(Screen):
             self.snake.append(self.snake[-1])
             self.score += 1
             self.update_label.text = f"Score: {self.score}"
+            if self.score > self.best_score:
+                self.best_score = self.score
+                self.best_score_label.text = f"Best score: {self.best_score}"
             if self.eat_sound:
                 self.eat_sound.play()
             self.food = self.generate_food()
