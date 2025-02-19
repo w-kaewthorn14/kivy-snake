@@ -19,12 +19,13 @@ class MenuScreen(Screen):
         
         start_button = Button(text='Start Game', font_size=24, size_hint=(None, None), size=(200, 50))
         exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
+        
         start_button.bind(on_release=self.start_game)
         exit_button.bind(on_release=self.exit_game)
-
+        
         layout.add_widget(start_button)
         layout.add_widget(exit_button)
-
+        
         self.add_widget(layout)
     
     def start_game(self, instance):
@@ -44,6 +45,7 @@ class SnakeGame(Screen):
         self.food = (random.randint(0, 19), random.randint(0, 19))
         self.score = 0
         self.snake_size = 20
+        self.paused = False
         
         self.update_label = Label(text="Score: 0", pos=(10, Window.height - 30))
         self.add_widget(self.update_label)
@@ -51,20 +53,39 @@ class SnakeGame(Screen):
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
         self.game_over_sound = SoundLoader.load('game_over.mp3')
         
+        self.pause_layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
+        self.pause_layout.size = (300, 200)
+        self.pause_layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+        self.pause_layout.opacity = 0
+        
+        resume_button = Button(text='Play Again', font_size=24, size_hint=(None, None), size=(200, 50))
+        exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
+        
+        resume_button.bind(on_release=self.reset_game)
+        exit_button.bind(on_release=lambda x: App.get_running_app().stop())
+        
+        self.pause_layout.add_widget(resume_button)
+        self.pause_layout.add_widget(exit_button)
+        self.add_widget(self.pause_layout)
+        
         self.update_event = Clock.schedule_interval(self.update, 0.1)
         Window.bind(on_key_down=self.on_key_down)
     
     def on_key_down(self, instance, key, *args):
-        if key == 273 and self.snake_direction != (0, -1):
-            self.snake_direction = (0, 1)
-        elif key == 274 and self.snake_direction != (0, 1):
-            self.snake_direction = (0, -1)
-        elif key == 275 and self.snake_direction != (-1, 0):
-            self.snake_direction = (1, 0)
-        elif key == 276 and self.snake_direction != (1, 0):
-            self.snake_direction = (-1, 0)
+        if not self.paused:
+            if key == 273 and self.snake_direction != (0, -1):
+                self.snake_direction = (0, 1)
+            elif key == 274 and self.snake_direction != (0, 1):
+                self.snake_direction = (0, -1)
+            elif key == 275 and self.snake_direction != (-1, 0):
+                self.snake_direction = (1, 0)
+            elif key == 276 and self.snake_direction != (1, 0):
+                self.snake_direction = (-1, 0)
     
     def update(self, dt):
+        if self.paused:
+            return
+        
         new_head = (self.snake[0][0] + self.snake_direction[0],
                     self.snake[0][1] + self.snake_direction[1])
         
@@ -73,7 +94,7 @@ class SnakeGame(Screen):
             new_head in self.snake):
             if self.game_over_sound:
                 self.game_over_sound.play()
-            self.reset_game()
+            self.pause_game()
             return
         
         self.snake = [new_head] + self.snake[:-1]
@@ -95,13 +116,21 @@ class SnakeGame(Screen):
             if food not in self.snake:
                 return food
     
-    def reset_game(self):
+    def pause_game(self):
+        self.paused = True
+        self.pause_layout.opacity = 1
+        Clock.unschedule(self.update)
+    
+    def reset_game(self, instance):
         self.snake = [(10, 10)]
         self.snake_direction = (1, 0)
         self.food = self.generate_food()
         self.score = 0
         self.update_label.text = "Score: 0"
         self.game_widget.canvas.clear()
+        self.paused = False
+        self.pause_layout.opacity = 0
+        self.update_event = Clock.schedule_interval(self.update, 0.1)
     
     def draw_snake(self):
         with self.game_widget.canvas:
