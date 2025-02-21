@@ -157,6 +157,19 @@ class SnakeGame(Screen):
             Rectangle(pos=(x * self.snake_size, y * self.snake_size),
                       size=(self.snake_size, self.snake_size))
 
+    def on_key_down(self, instance, key, *args):
+        if key == 112:  # 112 คือรหัสของปุ่ม P
+            self.paused = not self.paused
+        if not self.paused:
+            if key == 273 and self.snake_direction != (0, -1):
+                self.snake_direction = (0, 1)
+            elif key == 274 and self.snake_direction != (0, 1):
+                self.snake_direction = (0, -1)
+            elif key == 275 and self.snake_direction != (-1, 0):
+                self.snake_direction = (1, 0)
+            elif key == 276 and self.snake_direction != (1, 0):
+                self.snake_direction = (-1, 0)
+
 class SnakeApp(App):
     def build(self):
         sm = ScreenManager()
