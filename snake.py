@@ -55,8 +55,15 @@ class SnakeGame(Screen):
                                   size_hint=(None, None), size=(100, 40),
                                   pos=(10, Window.height - 60))
         
+        # เพิ่ม Timer
+        self.timer = 0
+        self.timer_label = Label(text="Time: 0", font_size=20,
+                                 size_hint=(None, None), size=(100, 40),
+                                 pos=(Window.width - 110, Window.height - 30))
+        
         self.add_widget(self.best_score_label)
         self.add_widget(self.update_label)
+        self.add_widget(self.timer_label)
         
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
         self.game_over_sound = SoundLoader.load('game_over.mp3')
@@ -93,6 +100,9 @@ class SnakeGame(Screen):
     def update(self, dt):
         if self.paused:
             return
+        
+        self.timer += 1  # เพิ่มเวลาในทุกๆ frame
+        self.timer_label.text = f"Time: {self.timer // 10}"  # แสดงเวลาในหน่วยวินาที
         
         new_head = (self.snake[0][0] + self.snake_direction[0],
                     self.snake[0][1] + self.snake_direction[1])
@@ -141,6 +151,8 @@ class SnakeGame(Screen):
         self.game_widget.canvas.clear()
         self.paused = False
         self.pause_layout.opacity = 0
+        self.timer = 0  # รีเซ็ตเวลาเมื่อเริ่มเกมใหม่
+        self.timer_label.text = "Time: 0"
         self.update_event = Clock.schedule_interval(self.update, 0.1)
     
     def draw_snake(self):
@@ -168,7 +180,7 @@ class SnakeGame(Screen):
             elif key == 275 and self.snake_direction != (-1, 0):
                 self.snake_direction = (1, 0)
             elif key == 276 and self.snake_direction != (1, 0):
-                self.snake_direction = (-1, 0)
+                self.snake_direction = (-1, 0)  
 
 class SnakeApp(App):
     def build(self):
