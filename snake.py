@@ -47,6 +47,8 @@ class SnakeGame(Screen):
         self.best_score = 0
         self.snake_size = 20
         self.paused = False
+        self.level = 1
+        self.speed = 0.1
         
         self.best_score_label = Label(text="Best: 0", font_size=20,
                                       size_hint=(None, None), size=(100, 40),
@@ -55,15 +57,19 @@ class SnakeGame(Screen):
                                   size_hint=(None, None), size=(100, 40),
                                   pos=(10, Window.height - 60))
         
-        # เพิ่ม Timer
         self.timer = 0
         self.timer_label = Label(text="Time: 0", font_size=20,
                                  size_hint=(None, None), size=(100, 40),
                                  pos=(Window.width - 110, Window.height - 30))
         
+        self.level_label = Label(text="Level: 1", font_size=20,
+                                 size_hint=(None, None), size=(100, 40),
+                                 pos=(Window.width - 110, Window.height - 60))
+        
         self.add_widget(self.best_score_label)
         self.add_widget(self.update_label)
         self.add_widget(self.timer_label)
+        self.add_widget(self.level_label)
         
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
         self.game_over_sound = SoundLoader.load('game_over.mp3')
@@ -74,52 +80,24 @@ class SnakeGame(Screen):
         self.pause_layout.opacity = 0
         
         resume_button = Button(text='Play Again', font_size=24, size_hint=(None, None), size=(200, 50))
-        exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
+        menu_button = Button(text='Go to Menu', font_size=24, size_hint=(None, None), size=(200, 50))
         
         resume_button.bind(on_release=self.reset_game)
-        exit_button.bind(on_release=lambda x: App.get_running_app().stop())
+        menu_button.bind(on_release=self.go_to_menu)
         
         self.pause_layout.add_widget(resume_button)
-        self.pause_layout.add_widget(exit_button)
+        self.pause_layout.add_widget(menu_button)
         self.add_widget(self.pause_layout)
         
-        self.update_event = Clock.schedule_interval(self.update, 0.1)
+        self.update_event = Clock.schedule_interval(self.update, self.speed)
         Window.bind(on_key_down=self.on_key_down)
-
-        # เพิ่มระดับ
-        self.level = 1  # เริ่มที่ระดับ 1
-        self.level_label = Label(text=f"Level: {self.level}", font_size=20,
-                                 size_hint=(None, None), size=(100, 40),
-                                 pos=(Window.width - 110, Window.height - 60))
-        self.add_widget(self.level_label)
-        
-    def on_key_down(self, instance, key, *args):
-        if key == 112:  # 112 คือรหัสของปุ่ม P
-            self.paused = not self.paused
-        if not self.paused:
-            if key == 273 and self.snake_direction != (0, -1):
-                self.snake_direction = (0, 1)
-            elif key == 274 and self.snake_direction != (0, 1):
-                self.snake_direction = (0, -1)
-            elif key == 275 and self.snake_direction != (-1, 0):
-                self.snake_direction = (1, 0)
-            elif key == 276 and self.snake_direction != (1, 0):
-                self.snake_direction = (-1, 0)
     
     def update(self, dt):
         if self.paused:
             return
         
-        self.timer += 1  # เพิ่มเวลาในทุกๆ frame
-        self.timer_label.text = f"Time: {self.timer // 10}"  # แสดงเวลาในหน่วยวินาที
-        
-        # เพิ่มระดับเมื่อคะแนนถึงค่าที่กำหนด
-        if self.score >= self.level * 5:
-            self.level += 1
-            self.level_label.text = f"Level: {self.level}"
-            # เพิ่มความเร็วของเกมเมื่อระดับเพิ่ม
-            self.update_event.cancel()
-            self.update_event = Clock.schedule_interval(self.update, max(0.05, 0.1 - (self.level * 0.01)))
+        self.timer += 1
+        self.timer_label.text = f"Time: {self.timer // 10}"
         
         new_head = (self.snake[0][0] + self.snake_direction[0],
                     self.snake[0][1] + self.snake_direction[1])
@@ -129,7 +107,7 @@ class SnakeGame(Screen):
             new_head in self.snake):
             if self.game_over_sound:
                 self.game_over_sound.play()
-            self.pause_game()
+            self.game_over_screen()
             return
         
         self.snake = [new_head] + self.snake[:-1]
@@ -147,14 +125,16 @@ class SnakeGame(Screen):
             if self.eat_sound:
                 self.eat_sound.play()
             self.food = self.generate_food()
-    
-    def generate_food(self):
-        while True:
-            food = (random.randint(0, 19), random.randint(0, 19))
-            if food not in self.snake:
-                return food
-    
-    def pause_game(self):
+            
+            # Increase level every 5 points
+            if self.score % 5 == 0:
+                self.level += 1
+                self.level_label.text = f"Level: {self.level}"
+                self.speed -= 0.01  # Increase speed
+                Clock.unschedule(self.update)
+                self.update_event = Clock.schedule_interval(self.update, self.speed)
+        
+    def game_over_screen(self):
         self.paused = True
         self.pause_layout.opacity = 1
         Clock.unschedule(self.update)
@@ -164,15 +144,19 @@ class SnakeGame(Screen):
         self.snake_direction = (1, 0)
         self.food = self.generate_food()
         self.score = 0
-        self.level = 1  # รีเซ็ตระดับเมื่อเริ่มเกมใหม่
+        self.level = 1
+        self.speed = 0.1
         self.update_label.text = "Score: 0"
-        self.level_label.text = f"Level: {self.level}"
+        self.level_label.text = "Level: 1"
         self.game_widget.canvas.clear()
         self.paused = False
         self.pause_layout.opacity = 0
         self.timer = 0
         self.timer_label.text = "Time: 0"
-        self.update_event = Clock.schedule_interval(self.update, 0.1)
+        self.update_event = Clock.schedule_interval(self.update, self.speed)
+
+    def go_to_menu(self, instance):
+        self.manager.current = 'menu'
     
     def draw_snake(self):
         with self.game_widget.canvas:
@@ -180,13 +164,29 @@ class SnakeGame(Screen):
             for x, y in self.snake:
                 Rectangle(pos=(x * self.snake_size, y * self.snake_size),
                           size=(self.snake_size, self.snake_size))
-    
+
     def draw_food(self):
         with self.game_widget.canvas:
             Color(1, 0, 0)
             x, y = self.food
             Rectangle(pos=(x * self.snake_size, y * self.snake_size),
                       size=(self.snake_size, self.snake_size))
+
+    def on_key_down(self, instance, key, *args):
+        if key == 112:  # 112 คือรหัสของปุ่ม P
+            self.paused = not self.paused
+        if not self.paused:
+            if key == 273 and self.snake_direction != (0, -1):
+                self.snake_direction = (0, 1)
+            elif key == 274 and self.snake_direction != (0, 1):
+                self.snake_direction = (0, -1)
+            elif key == 275 and self.snake_direction != (-1, 0):
+                self.snake_direction = (1, 0)
+            elif key == 276 and self.snake_direction != (1, 0):
+                self.snake_direction = (-1, 0)
+
+    def generate_food(self):
+        return (random.randint(0, 19), random.randint(0, 19))
 
 class SnakeApp(App):
     def build(self):
