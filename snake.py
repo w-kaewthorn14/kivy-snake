@@ -166,6 +166,11 @@ class SnakeGame(Screen):
         self.timer = 0
         self.timer_label.text = "Time: 0"
         self.update_event = Clock.schedule_interval(self.update, self.speed)
+        
+        # ลบ "GAME OVER" label ถ้ามี
+        for widget in self.children:
+            if isinstance(widget, Label) and widget.text == "GAME OVER":
+                self.remove_widget(widget)
 
     def go_to_menu(self, instance):
         self.manager.current = 'menu'
