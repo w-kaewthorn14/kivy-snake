@@ -143,7 +143,7 @@ class SnakeGame(Screen):
         # Create "Game Over" label and animate it
         game_over_label = Label(text="GAME OVER", font_size=50, color=(1, 0, 0, 1),
                                 size_hint=(None, None), size=(300, 100),
-                                pos=(Window.width / 2 - 150, Window.height / 2))
+                                pos=(Window.width / 2 - 150, Window.height / 2+65))
         
         self.add_widget(game_over_label)
         
