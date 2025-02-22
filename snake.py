@@ -9,6 +9,7 @@ from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.audio import SoundLoader
+from kivy.animation import Animation
 
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
@@ -138,6 +139,17 @@ class SnakeGame(Screen):
         self.paused = True
         self.pause_layout.opacity = 1
         Clock.unschedule(self.update)
+        
+        # Create "Game Over" label and animate it
+        game_over_label = Label(text="GAME OVER", font_size=50, color=(1, 0, 0, 1),
+                                size_hint=(None, None), size=(300, 100),
+                                pos=(Window.width / 2 - 150, Window.height / 2))
+        
+        self.add_widget(game_over_label)
+        
+        # Animation to make the text scale up
+        anim = Animation(font_size=80, duration=1.5) + Animation(font_size=50, duration=1.5)
+        anim.start(game_over_label)
     
     def reset_game(self, instance):
         self.snake = [(10, 10)]
