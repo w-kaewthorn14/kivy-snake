@@ -10,6 +10,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.audio import SoundLoader
 from kivy.animation import Animation
+from kivy.uix.image import Image
 
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
@@ -180,11 +181,19 @@ class SnakeGame(Screen):
         self.manager.current = 'menu'
     
     def draw_snake(self):
-        with self.game_widget.canvas:
-            Color(0, 1, 0)
-            for x, y in self.snake:
-                Rectangle(pos=(x * self.snake_size, y * self.snake_size),
-                          size=(self.snake_size, self.snake_size))
+            self.game_widget.canvas.clear()
+            with self.game_widget.canvas:
+                # วาดหัวงู
+                head_texture = Image(source="snake_head.jpg").texture
+                x, y = self.snake[0]
+                Rectangle(texture=head_texture, pos=(x * self.snake_size, y * self.snake_size),
+                    size=(self.snake_size, self.snake_size))
+
+                # วาดตัวงู
+                body_texture = Image(source="snake_body.jpg").texture
+                for x, y in self.snake[1:]:
+                    Rectangle(texture=body_texture, pos=(x * self.snake_size, y * self.snake_size),
+                      size=(self.snake_size, self.snake_size))
 
     def draw_food(self):
         with self.game_widget.canvas:
