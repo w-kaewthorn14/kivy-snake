@@ -17,7 +17,7 @@ class MenuScreen(Screen):
         layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         layout.size = (300, 200)
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
-        
+
         start_button = Button(text='Start Game', font_size=24, size_hint=(None, None), size=(200, 50))
         exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
         
@@ -74,6 +74,10 @@ class SnakeGame(Screen):
         
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
         self.game_over_sound = SoundLoader.load('game_over.mp3')
+        self.up_sound = SoundLoader.load('up.mp3')
+        self.right_sound = SoundLoader.load('right.mp3')
+        self.down_sound = SoundLoader.load('down.mp3')
+        self.left_sound = SoundLoader.load('left.mp3')
 
         self.pause_layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         self.pause_layout.size = (300, 200)
@@ -195,12 +199,16 @@ class SnakeGame(Screen):
         if not self.paused:
             if key == 273 and self.snake_direction != (0, -1):
                 self.snake_direction = (0, 1)
+                self.up_sound.play()
             elif key == 274 and self.snake_direction != (0, 1):
                 self.snake_direction = (0, -1)
+                self.down_sound.play()
             elif key == 275 and self.snake_direction != (-1, 0):
                 self.snake_direction = (1, 0)
+                self.right_sound.play()
             elif key == 276 and self.snake_direction != (1, 0):
                 self.snake_direction = (-1, 0)
+                self.left_sound.play()
 
     def generate_food(self):
         return (random.randint(0, 19), random.randint(0, 19))
