@@ -181,19 +181,24 @@ class SnakeGame(Screen):
         self.manager.current = 'menu'
     
     def draw_snake(self):
-            self.game_widget.canvas.clear()
-            with self.game_widget.canvas:
-                # วาดหัวงู
-                head_texture = Image(source="snake_head.jpg").texture
+        self.game_widget.canvas.clear()  # เคลียร์ Canvas ก่อนวาดใหม่
+        with self.game_widget.canvas:
+            try:
+            # โหลด texture หัวงู
+                head_texture = Image(source="assets/snake_head.png").texture
                 x, y = self.snake[0]
                 Rectangle(texture=head_texture, pos=(x * self.snake_size, y * self.snake_size),
-                    size=(self.snake_size, self.snake_size))
+                      size=(self.snake_size, self.snake_size))
 
-                # วาดตัวงู
-                body_texture = Image(source="snake_body.jpg").texture
+            # โหลด texture ตัวงู
+                body_texture = Image(source="assets/snake_body.png").texture
                 for x, y in self.snake[1:]:
                     Rectangle(texture=body_texture, pos=(x * self.snake_size, y * self.snake_size),
-                      size=(self.snake_size, self.snake_size))
+                          size=(self.snake_size, self.snake_size))
+
+            except Exception as e:
+                print(f"Error loading snake texture: {e}")  # แสดงข้อผิดพลาดถ้ามีปัญหา
+
 
     def draw_food(self):
         with self.game_widget.canvas:
