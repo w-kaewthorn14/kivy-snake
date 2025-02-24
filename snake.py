@@ -73,7 +73,8 @@ class SnakeGame(Screen):
         self.add_widget(self.level_label)
         
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
-        
+        self.game_over_sound = SoundLoader.load('game_over.mp3')
+
         self.pause_layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         self.pause_layout.size = (300, 200)
         self.pause_layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
