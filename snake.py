@@ -28,7 +28,7 @@ class MenuScreen(Screen):
         layout.add_widget(exit_button)
         
         self.add_widget(layout)
-    
+
     def start_game(self, instance):
         self.manager.current = 'game'
     
@@ -73,7 +73,6 @@ class SnakeGame(Screen):
         self.add_widget(self.level_label)
         
         self.eat_sound = SoundLoader.load('eat_sound.mp3')
-        self.game_over_sound = SoundLoader.load('game_over.mp3')
         
         self.pause_layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         self.pause_layout.size = (300, 200)
