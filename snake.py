@@ -69,6 +69,7 @@ class LevelSelectionScreen(Screen):
     def start_game(self, difficulty):
         self.manager.current = 'game'
         game_screen = self.manager.get_screen('game')
+        game_screen.set_difficulty(difficulty)
     
     def go_to_menu(self, instance):
         self.manager.current = 'menu'
@@ -134,6 +135,16 @@ class SnakeGame(Screen):
         
         self.update_event = Clock.schedule_interval(self.update, self.speed)
         Window.bind(on_key_down=self.on_key_down)
+    
+    def set_difficulty(self, difficulty):
+        if difficulty == 'easy':
+            self.speed = 0.2
+        elif difficulty == 'medium':
+            self.speed = 0.1
+        elif difficulty == 'hard':
+            self.speed = 0.05
+        Clock.unschedule(self.update)
+        self.update_event = Clock.schedule_interval(self.update, self.speed)
     
     def update(self, dt):
         if self.paused:
