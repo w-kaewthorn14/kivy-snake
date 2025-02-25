@@ -20,12 +20,15 @@ class MenuScreen(Screen):
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
 
         start_button = Button(text='Start Game', font_size=24, size_hint=(None, None), size=(200, 50))
+        level_button = Button(text='Setting', font_size=24, size_hint=(None, None), size=(200, 50))
         exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
         
         start_button.bind(on_release=self.start_game)
+        level_button.bind(on_release=self.select_level)
         exit_button.bind(on_release=self.exit_game)
         
         layout.add_widget(start_button)
+        layout.add_widget(level_button)
         layout.add_widget(exit_button)
         
         self.add_widget(layout)
@@ -33,8 +36,42 @@ class MenuScreen(Screen):
     def start_game(self, instance):
         self.manager.current = 'game'
     
+    def select_level(self, instance):
+        self.manager.current = 'level_selection'
+    
     def exit_game(self, instance):
         App.get_running_app().stop()
+
+class LevelSelectionScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
+        layout.size = (300, 200)
+        layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+
+        easy_button = Button(text='Easy', font_size=24, size_hint=(None, None), size=(200, 50))
+        medium_button = Button(text='Medium', font_size=24, size_hint=(None, None), size=(200, 50))
+        hard_button = Button(text='Hard', font_size=24, size_hint=(None, None), size=(200, 50))
+        back_button = Button(text='Back to Menu', font_size=24, size_hint=(None, None), size=(200, 50))
+        
+        easy_button.bind(on_release=lambda x: self.start_game('easy'))
+        medium_button.bind(on_release=lambda x: self.start_game('medium'))
+        hard_button.bind(on_release=lambda x: self.start_game('hard'))
+        back_button.bind(on_release=self.go_to_menu)
+        
+        layout.add_widget(easy_button)
+        layout.add_widget(medium_button)
+        layout.add_widget(hard_button)
+        layout.add_widget(back_button)
+        
+        self.add_widget(layout)
+    
+    def start_game(self, difficulty):
+        self.manager.current = 'game'
+        game_screen = self.manager.get_screen('game')
+    
+    def go_to_menu(self, instance):
+        self.manager.current = 'menu'
 
 class SnakeGame(Screen):
     def __init__(self, **kwargs):
@@ -73,12 +110,12 @@ class SnakeGame(Screen):
         self.add_widget(self.timer_label)
         self.add_widget(self.level_label)
         
-        self.eat_sound = SoundLoader.load('eat_sound.mp3')
-        self.game_over_sound = SoundLoader.load('game_over.mp3')
-        self.up_sound = SoundLoader.load('up.mp3')
-        self.right_sound = SoundLoader.load('right.mp3')
-        self.down_sound = SoundLoader.load('down.mp3')
-        self.left_sound = SoundLoader.load('left.mp3')
+        self.eat_sound = SoundLoader.load('assets/eat_sound.mp3')
+        self.game_over_sound = SoundLoader.load('assets/game_over.mp3')
+        self.up_sound = SoundLoader.load('assets/up.mp3')
+        self.right_sound = SoundLoader.load('assets/right.mp3')
+        self.down_sound = SoundLoader.load('assets/down.mp3')
+        self.left_sound = SoundLoader.load('assets/left.mp3')
 
         self.pause_layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         self.pause_layout.size = (300, 200)
@@ -162,7 +199,6 @@ class SnakeGame(Screen):
         self.food = self.generate_food()
         self.score = 0
         self.level = 1
-        self.speed = 0.1
         self.update_label.text = "Score: 0"
         self.level_label.text = "Level: 1"
         self.game_widget.canvas.clear()
@@ -184,21 +220,20 @@ class SnakeGame(Screen):
         self.game_widget.canvas.clear()  # เคลียร์ Canvas ก่อนวาดใหม่
         with self.game_widget.canvas:
             try:
-            # โหลด texture หัวงู
+                # โหลด texture หัวงู
                 head_texture = Image(source="assets/snake_head.png").texture
                 x, y = self.snake[0]
                 Rectangle(texture=head_texture, pos=(x * self.snake_size, y * self.snake_size),
-                      size=(self.snake_size, self.snake_size))
+                          size=(self.snake_size, self.snake_size))
 
-            # โหลด texture ตัวงู
+                # โหลด texture ตัวงู
                 body_texture = Image(source="assets/snake_body.png").texture
                 for x, y in self.snake[1:]:
                     Rectangle(texture=body_texture, pos=(x * self.snake_size, y * self.snake_size),
-                          size=(self.snake_size, self.snake_size))
+                              size=(self.snake_size, self.snake_size))
 
             except Exception as e:
                 print(f"Error loading snake texture: {e}")  # แสดงข้อผิดพลาดถ้ามีปัญหา
-
 
     def draw_food(self):
         with self.game_widget.canvas:
@@ -231,6 +266,7 @@ class SnakeApp(App):
     def build(self):
         sm = ScreenManager()
         sm.add_widget(MenuScreen(name='menu'))
+        sm.add_widget(LevelSelectionScreen(name='level_selection'))
         sm.add_widget(SnakeGame(name='game'))
         return sm
 
