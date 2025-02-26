@@ -8,6 +8,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.slider import Slider
 from kivy.core.audio import SoundLoader
 from kivy.animation import Animation
 from kivy.uix.image import Image
@@ -67,10 +68,32 @@ class LevelSelectionScreen(Screen):
         self.add_widget(layout)
     
     def start_game(self, difficulty):
-        self.manager.current = 'game'
         game_screen = self.manager.get_screen('game')
         game_screen.set_difficulty(difficulty)
+        self.manager.current = 'game'
     
+    def go_to_menu(self, instance):
+        self.manager.current = 'menu'
+
+class SettingScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
+        layout.size = (300, 200)
+        layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+
+        volume_label = Label(text='Volume', font_size=24, size_hint=(None, None), size=(200, 50))
+        self.volume_slider = Slider(min=0, max=1, value=0.5, size_hint=(None, None), size=(200, 50))
+
+        back_button = Button(text='Back to Menu', font_size=24, size_hint=(None, None), size=(200, 50))
+        back_button.bind(on_release=self.go_to_menu)
+        
+        layout.add_widget(volume_label)
+        layout.add_widget(self.volume_slider)
+        layout.add_widget(back_button)
+        
+        self.add_widget(layout)
+
     def go_to_menu(self, instance):
         self.manager.current = 'menu'
 
@@ -143,8 +166,6 @@ class SnakeGame(Screen):
             self.speed = 0.1
         elif difficulty == 'hard':
             self.speed = 0.05
-        Clock.unschedule(self.update)
-        self.update_event = Clock.schedule_interval(self.update, self.speed)
     
     def update(self, dt):
         if self.paused:
@@ -184,7 +205,7 @@ class SnakeGame(Screen):
             if self.score % 5 == 0:
                 self.level += 1
                 self.level_label.text = f"Level: {self.level}"
-                self.speed -= 0.01  # Increase speed
+                self.speed = max(self.speed - 0.01, 0.02)  # Increase speed, but not less than 0.02
                 Clock.unschedule(self.update)
                 self.update_event = Clock.schedule_interval(self.update, self.speed)
         
@@ -217,6 +238,7 @@ class SnakeGame(Screen):
         self.pause_layout.opacity = 0
         self.timer = 0
         self.timer_label.text = "Time: 0"
+        Clock.unschedule(self.update)
         self.update_event = Clock.schedule_interval(self.update, self.speed)
         
         # ลบ "GAME OVER" label ถ้ามี
@@ -278,6 +300,7 @@ class SnakeApp(App):
         sm = ScreenManager()
         sm.add_widget(MenuScreen(name='menu'))
         sm.add_widget(LevelSelectionScreen(name='level_selection'))
+        sm.add_widget(SettingScreen(name='setting'))
         sm.add_widget(SnakeGame(name='game'))
         return sm
 
