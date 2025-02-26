@@ -16,6 +16,7 @@ from kivy.uix.image import Image
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.click_sound = SoundLoader.load('assets/click.mp3')
         layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         layout.size = (300, 200)
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
@@ -34,18 +35,26 @@ class MenuScreen(Screen):
         
         self.add_widget(layout)
 
+    def play_click_sound(self):
+        if self.click_sound:
+            self.click_sound.play()
+
     def start_game(self, instance):
+        self.play_click_sound()
         self.manager.current = 'game'
     
     def select_level(self, instance):
+        self.play_click_sound()
         self.manager.current = 'level_selection'
     
     def exit_game(self, instance):
+        self.play_click_sound()
         App.get_running_app().stop()
 
 class LevelSelectionScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.click_sound = SoundLoader.load('assets/click.mp3')
         layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         layout.size = (300, 200)
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
@@ -67,17 +76,24 @@ class LevelSelectionScreen(Screen):
         
         self.add_widget(layout)
     
+    def play_click_sound(self):
+        if self.click_sound:
+            self.click_sound.play()
+
     def start_game(self, difficulty):
+        self.play_click_sound()
         game_screen = self.manager.get_screen('game')
         game_screen.set_difficulty(difficulty)
         self.manager.current = 'game'
     
     def go_to_menu(self, instance):
+        self.play_click_sound()
         self.manager.current = 'menu'
 
 class SettingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.click_sound = SoundLoader.load('assets/click.mp3')
         layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         layout.size = (300, 200)
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
@@ -94,7 +110,12 @@ class SettingScreen(Screen):
         
         self.add_widget(layout)
 
+    def play_click_sound(self):
+        if self.click_sound:
+            self.click_sound.play()
+
     def go_to_menu(self, instance):
+        self.play_click_sound()
         self.manager.current = 'menu'
 
 class SnakeGame(Screen):
