@@ -22,42 +22,45 @@ class MenuScreen(Screen):
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
 
         start_button = Button(text='Start Game', font_size=24, size_hint=(None, None), size=(200, 50))
-        level_button = Button(text='Setting', font_size=24, size_hint=(None, None), size=(200, 50))
+        setting_button = Button(text='Setting', font_size=24, size_hint=(None, None), size=(200, 50))
         exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
         
         start_button.bind(on_release=self.start_game)
-        level_button.bind(on_release=self.select_level)
+        setting_button.bind(on_release=self.open_setting)
         exit_button.bind(on_release=self.exit_game)
         
         layout.add_widget(start_button)
-        layout.add_widget(level_button)
+        layout.add_widget(setting_button)
         layout.add_widget(exit_button)
         
         self.add_widget(layout)
 
     def play_click_sound(self):
         if self.click_sound:
+            
             self.click_sound.play()
 
     def start_game(self, instance):
         self.play_click_sound()
         self.manager.current = 'game'
     
-    def select_level(self, instance):
+    def open_setting(self, instance):
         self.play_click_sound()
-        self.manager.current = 'level_selection'
+        self.manager.current = 'setting'
     
     def exit_game(self, instance):
         self.play_click_sound()
         App.get_running_app().stop()
 
-class LevelSelectionScreen(Screen):
+class SettingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.click_sound = SoundLoader.load('assets/click.mp3')
-        layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
-        layout.size = (300, 200)
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=50)
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+
+        volume_label = Label(text='Volume', font_size=24)
+        self.volume_slider = Slider(min=0, max=1, value=0.5, size_hint=(0.8, None), height=40)
 
         easy_button = Button(text='Easy', font_size=24, size_hint=(None, None), size=(200, 50))
         medium_button = Button(text='Medium', font_size=24, size_hint=(None, None), size=(200, 50))
@@ -69,15 +72,25 @@ class LevelSelectionScreen(Screen):
         hard_button.bind(on_release=lambda x: self.start_game('hard'))
         back_button.bind(on_release=self.go_to_menu)
         
-        layout.add_widget(easy_button)
-        layout.add_widget(medium_button)
-        layout.add_widget(hard_button)
-        layout.add_widget(back_button)
-        
-        self.add_widget(layout)
-    
+        slider_layout = BoxLayout(orientation='horizontal', size_hint=(None, None), size=(300, 50))
+        slider_layout.add_widget(volume_label)
+        slider_layout.add_widget(self.volume_slider)
+
+        button_layout = BoxLayout(orientation='vertical', size_hint=(None, None), size=(300, 300))
+        button_layout.add_widget(easy_button)
+        button_layout.add_widget(medium_button)
+        button_layout.add_widget(hard_button)
+        button_layout.add_widget(back_button)
+
+        main_layout = BoxLayout(orientation='vertical', spacing=10, padding=50)
+        main_layout.add_widget(slider_layout)
+        main_layout.add_widget(button_layout)
+
+        self.add_widget(main_layout)
+
     def play_click_sound(self):
         if self.click_sound:
+            self.click_sound.volume = self.volume_slider.value
             self.click_sound.play()
 
     def start_game(self, difficulty):
@@ -86,34 +99,6 @@ class LevelSelectionScreen(Screen):
         game_screen.set_difficulty(difficulty)
         self.manager.current = 'game'
     
-    def go_to_menu(self, instance):
-        self.play_click_sound()
-        self.manager.current = 'menu'
-
-class SettingScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.click_sound = SoundLoader.load('assets/click.mp3')
-        layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
-        layout.size = (300, 200)
-        layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
-
-        volume_label = Label(text='Volume', font_size=24, size_hint=(None, None), size=(200, 50))
-        self.volume_slider = Slider(min=0, max=1, value=0.5, size_hint=(None, None), size=(200, 50))
-
-        back_button = Button(text='Back to Menu', font_size=24, size_hint=(None, None), size=(200, 50))
-        back_button.bind(on_release=self.go_to_menu)
-        
-        layout.add_widget(volume_label)
-        layout.add_widget(self.volume_slider)
-        layout.add_widget(back_button)
-        
-        self.add_widget(layout)
-
-    def play_click_sound(self):
-        if self.click_sound:
-            self.click_sound.play()
-
     def go_to_menu(self, instance):
         self.play_click_sound()
         self.manager.current = 'menu'
@@ -320,7 +305,6 @@ class SnakeApp(App):
     def build(self):
         sm = ScreenManager()
         sm.add_widget(MenuScreen(name='menu'))
-        sm.add_widget(LevelSelectionScreen(name='level_selection'))
         sm.add_widget(SettingScreen(name='setting'))
         sm.add_widget(SnakeGame(name='game'))
         return sm
