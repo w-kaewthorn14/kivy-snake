@@ -43,6 +43,9 @@ class MenuScreen(Screen):
 
     def start_game(self, instance):
         self.play_click_sound()
+        game_screen = self.manager.get_screen('game')
+        game_screen.reset_game(None)  # เรียก reset_game ของ SnakeGame แทน
+        game_screen.start_game()  # เรียก start_game() ของ SnakeGame
         self.manager.current = 'game'
     
     def open_setting(self, instance):
@@ -106,7 +109,9 @@ class SettingScreen(Screen):
     def start_game(self, difficulty):
         self.play_click_sound()
         game_screen = self.manager.get_screen('game')
+        game_screen.reset_game(None)  # เรียก reset_game ของ SnakeGame
         game_screen.set_difficulty(difficulty)
+        game_screen.start_game()  # เรียก start_game ของ SnakeGame เพื่อเริ่มเกม
         self.manager.current = 'game'
     
     def go_to_menu(self, instance):
@@ -125,10 +130,10 @@ class SnakeGame(Screen):
         self.score = 0
         self.best_score = 0
         self.snake_size = 20
-        self.paused = False
+        self.paused = True  # เริ่มต้นให้เกมอยู่ในสถานะหยุด
         self.level = 1
         self.speed = 0.1
-        
+        self.update_event = None
         self.best_score_label = Label(text="Best: 0", font_size=20,
                                       size_hint=(None, None), size=(100, 40),
                                       pos=(10, Window.height - 30))
@@ -172,8 +177,17 @@ class SnakeGame(Screen):
         self.pause_layout.add_widget(menu_button)
         self.add_widget(self.pause_layout)
         
-        self.update_event = Clock.schedule_interval(self.update, self.speed)
+        # วาดงูและอาหารเริ่มต้นเพื่อแสดงบนหน้าจอ
+        self.draw_snake()
+        self.draw_food()
+        
         Window.bind(on_key_down=self.on_key_down)
+    
+    def start_game(self):
+        # เมธอดนี้จะถูกเรียกเมื่อกดปุ่ม Start หรือเลือกความยาก
+        self.paused = False
+        Clock.unschedule(self.update_event)  # ยกเลิกการอัปเดตก่อนหน้า (ถ้ามี)
+        self.update_event = Clock.schedule_interval(self.update, self.speed)
     
     def set_difficulty(self, difficulty):
         if difficulty == 'easy':
@@ -230,7 +244,7 @@ class SnakeGame(Screen):
     def game_over_screen(self):
         self.paused = True
         self.pause_layout.opacity = 1
-        Clock.unschedule(self.update)
+        Clock.unschedule(self.update_event)
         
         # Create "Game Over" label and animate it
         game_over_label = Label(text="GAME OVER", font_size=50, color=(1, 0, 0, 1),
@@ -252,12 +266,15 @@ class SnakeGame(Screen):
         self.update_label.text = "Score: 0"
         self.level_label.text = "Level: 1"
         self.game_widget.canvas.clear()
-        self.paused = False
+        self.paused = True  # ยังคงให้เกมหยุดอยู่จนกว่าจะมีการเรียก start_game()
         self.pause_layout.opacity = 0
         self.timer = 0
         self.timer_label.text = "Time: 0"
-        Clock.unschedule(self.update)
-        self.update_event = Clock.schedule_interval(self.update, self.speed)
+        Clock.unschedule(self.update_event)
+        
+        # วาดงูและอาหารเริ่มต้น
+        self.draw_snake()
+        self.draw_food()
         
         # ลบ "GAME OVER" label ถ้ามี
         for widget in self.children:
@@ -265,10 +282,11 @@ class SnakeGame(Screen):
                 self.remove_widget(widget)
 
     def go_to_menu(self, instance):
+        self.paused = True
+        Clock.unschedule(self.update_event)
         self.manager.current = 'menu'
     
     def draw_snake(self):
-        self.game_widget.canvas.clear()  # เคลียร์ Canvas ก่อนวาดใหม่
         with self.game_widget.canvas:
             try:
                 # โหลด texture หัวงู
@@ -289,7 +307,7 @@ class SnakeGame(Screen):
     def draw_food(self):
         with self.game_widget.canvas:
             try:
-            # โหลด texture ของอาหาร (แอปเปิล)
+                # โหลด texture ของอาหาร (แอปเปิล)
                 food_texture = Image(source="assets/Apple.webp").texture
                 x, y = self.food
                 Rectangle(texture=food_texture, 
@@ -302,23 +320,32 @@ class SnakeGame(Screen):
     def on_key_down(self, instance, key, *args):
         if key == 112:  # 112 คือรหัสของปุ่ม P
             self.paused = not self.paused
+            if not self.paused and self.update_event is None:
+                self.update_event = Clock.schedule_interval(self.update, self.speed)
+            elif self.paused and self.update_event is not None:
+                Clock.unschedule(self.update_event)
+        
         if not self.paused:
-            if key == 273 and self.snake_direction != (0, -1):
+            if key == 273 and self.snake_direction != (0, -1):  # Up
                 self.snake_direction = (0, 1)
-                self.up_sound.volume = self.manager.get_screen('setting').volume_slider.value
-                self.up_sound.play()
-            elif key == 274 and self.snake_direction != (0, 1):
+                if self.up_sound:
+                    self.up_sound.volume = self.manager.get_screen('setting').volume_slider.value
+                    self.up_sound.play()
+            elif key == 274 and self.snake_direction != (0, 1):  # Down
                 self.snake_direction = (0, -1)
-                self.down_sound.volume = self.manager.get_screen('setting').volume_slider.value
-                self.down_sound.play()
-            elif key == 275 and self.snake_direction != (-1, 0):
+                if self.down_sound:
+                    self.down_sound.volume = self.manager.get_screen('setting').volume_slider.value
+                    self.down_sound.play()
+            elif key == 275 and self.snake_direction != (-1, 0):  # Right
                 self.snake_direction = (1, 0)
-                self.right_sound.volume = self.manager.get_screen('setting').volume_slider.value
-                self.right_sound.play()
-            elif key == 276 and self.snake_direction != (1, 0):
+                if self.right_sound:
+                    self.right_sound.volume = self.manager.get_screen('setting').volume_slider.value
+                    self.right_sound.play()
+            elif key == 276 and self.snake_direction != (1, 0):  # Left
                 self.snake_direction = (-1, 0)
-                self.left_sound.volume = self.manager.get_screen('setting').volume_slider.value
-                self.left_sound.play()
+                if self.left_sound:
+                    self.left_sound.volume = self.manager.get_screen('setting').volume_slider.value
+                    self.left_sound.play()
 
     def generate_food(self):
         return (random.randint(0, 19), random.randint(0, 19))
