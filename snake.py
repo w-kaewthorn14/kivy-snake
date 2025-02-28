@@ -38,7 +38,7 @@ class MenuScreen(Screen):
 
     def play_click_sound(self):
         if self.click_sound:
-            
+            self.click_sound.volume = self.manager.get_screen('setting').volume_slider.value
             self.click_sound.play()
 
     def start_game(self, instance):
@@ -197,6 +197,7 @@ class SnakeGame(Screen):
             new_head[1] < 0 or new_head[1] >= Window.height // self.snake_size or
             new_head in self.snake):
             if self.game_over_sound:
+                self.game_over_sound.volume = self.manager.get_screen('setting').volume_slider.value
                 self.game_over_sound.play()
             self.game_over_screen()
             return
@@ -214,6 +215,7 @@ class SnakeGame(Screen):
                 self.best_score = self.score
                 self.best_score_label.text = f"Best score: {self.best_score}"
             if self.eat_sound:
+                self.eat_sound.volume = self.manager.get_screen('setting').volume_slider.value
                 self.eat_sound.play()
             self.food = self.generate_food()
             
@@ -297,15 +299,19 @@ class SnakeGame(Screen):
         if not self.paused:
             if key == 273 and self.snake_direction != (0, -1):
                 self.snake_direction = (0, 1)
+                self.up_sound.volume = self.manager.get_screen('setting').volume_slider.value
                 self.up_sound.play()
             elif key == 274 and self.snake_direction != (0, 1):
                 self.snake_direction = (0, -1)
+                self.down_sound.volume = self.manager.get_screen('setting').volume_slider.value
                 self.down_sound.play()
             elif key == 275 and self.snake_direction != (-1, 0):
                 self.snake_direction = (1, 0)
+                self.right_sound.volume = self.manager.get_screen('setting').volume_slider.value
                 self.right_sound.play()
             elif key == 276 and self.snake_direction != (1, 0):
                 self.snake_direction = (-1, 0)
+                self.left_sound.volume = self.manager.get_screen('setting').volume_slider.value
                 self.left_sound.play()
 
     def generate_food(self):
