@@ -288,10 +288,16 @@ class SnakeGame(Screen):
 
     def draw_food(self):
         with self.game_widget.canvas:
-            Color(1, 0, 0)
-            x, y = self.food
-            Rectangle(pos=(x * self.snake_size, y * self.snake_size),
+            try:
+            # โหลด texture ของอาหาร (แอปเปิล)
+                food_texture = Image(source="assets/Apple.webp").texture
+                x, y = self.food
+                Rectangle(texture=food_texture, 
+                      pos=(x * self.snake_size, y * self.snake_size),
                       size=(self.snake_size, self.snake_size))
+            except Exception as e:
+                print(f"Error loading food texture: {e}")  # แสดงข้อผิดพลาดหากมี
+
 
     def on_key_down(self, instance, key, *args):
         if key == 112:  # 112 คือรหัสของปุ่ม P
