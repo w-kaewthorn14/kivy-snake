@@ -13,11 +13,21 @@ from kivy.core.audio import SoundLoader
 from kivy.animation import Animation
 from kivy.uix.image import Image
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.graphics.texture import Texture
 
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.click_sound = SoundLoader.load('assets/click.mp3')
+        
+        # เพิ่มพื้นหลังให้กับหน้าเมนู
+        with self.canvas.before:
+            self.bg_texture = Image(source='assets/snake_body.png').texture
+            self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
+        
+        # ผูกการปรับขนาดหน้าจอกับพื้นหลัง
+        self.bind(size=self._update_bg, pos=self._update_bg)
+        
         layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
         layout.size = (300, 200)
         layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
@@ -35,6 +45,11 @@ class MenuScreen(Screen):
         layout.add_widget(exit_button)
         
         self.add_widget(layout)
+    
+    def _update_bg(self, *args):
+        # อัปเดตขนาดและตำแหน่งของพื้นหลัง
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
 
     def play_click_sound(self):
         if self.click_sound:
@@ -44,8 +59,8 @@ class MenuScreen(Screen):
     def start_game(self, instance):
         self.play_click_sound()
         game_screen = self.manager.get_screen('game')
-        game_screen.reset_game(None)  # เรียก reset_game ของ SnakeGame แทน
-        game_screen.start_game()  # เรียก start_game() ของ SnakeGame
+        game_screen.reset_game(None)
+        game_screen.start_game()
         self.manager.current = 'game'
     
     def open_setting(self, instance):
@@ -60,6 +75,15 @@ class SettingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.click_sound = SoundLoader.load('assets/click.mp3')
+        
+        # เพิ่มพื้นหลังให้กับหน้าตั้งค่า
+        with self.canvas.before:
+            self.bg_texture = Image(source='assets/snake_body.png').texture
+            #self.bg_texture.wrap = 'repeat'
+            self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
+        
+        # ผูกการปรับขนาดหน้าจอกับพื้นหลัง
+        self.bind(size=self._update_bg, pos=self._update_bg)
 
         # Layout หลัก
         main_layout = BoxLayout(orientation='vertical', padding=20, spacing=20)
@@ -100,6 +124,11 @@ class SettingScreen(Screen):
 
         main_layout.add_widget(center_layout)
         self.add_widget(main_layout)
+    
+    def _update_bg(self, *args):
+        # อัปเดตขนาดและตำแหน่งของพื้นหลัง
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
 
     def play_click_sound(self):
         if self.click_sound:
@@ -109,9 +138,9 @@ class SettingScreen(Screen):
     def start_game(self, difficulty):
         self.play_click_sound()
         game_screen = self.manager.get_screen('game')
-        game_screen.reset_game(None)  # เรียก reset_game ของ SnakeGame
+        game_screen.reset_game(None)
         game_screen.set_difficulty(difficulty)
-        game_screen.start_game()  # เรียก start_game ของ SnakeGame เพื่อเริ่มเกม
+        game_screen.start_game()
         self.manager.current = 'game'
     
     def go_to_menu(self, instance):
@@ -121,6 +150,16 @@ class SettingScreen(Screen):
 class SnakeGame(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
+        # เพิ่มพื้นหลังให้กับหน้าเกม
+        with self.canvas.before:
+            self.bg_texture = Image(source='assets/snake_body.png').texture
+            #self.bg_texture.wrap = 'repeat'
+            self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
+        
+        # ผูกการปรับขนาดหน้าจอกับพื้นหลัง
+        self.bind(size=self._update_bg, pos=self._update_bg)
+        
         self.game_widget = Widget()
         self.add_widget(self.game_widget)
         
@@ -130,9 +169,10 @@ class SnakeGame(Screen):
         self.score = 0
         self.best_score = 0
         self.snake_size = 20
-        self.paused = True  # เริ่มต้นให้เกมอยู่ในสถานะหยุด
+        self.paused = True
         self.level = 1
         self.speed = 0.1
+        
         self.update_event = None
         self.best_score_label = Label(text="Best: 0", font_size=20,
                                       size_hint=(None, None), size=(100, 40),
@@ -177,11 +217,32 @@ class SnakeGame(Screen):
         self.pause_layout.add_widget(menu_button)
         self.add_widget(self.pause_layout)
         
-        # วาดงูและอาหารเริ่มต้นเพื่อแสดงบนหน้าจอ
-        self.draw_snake()
-        self.draw_food()
+        # วาดพื้นหลังแบบตาราง (grid) สำหรับเกม
+        self.draw_grid()
         
         Window.bind(on_key_down=self.on_key_down)
+    
+    def _update_bg(self, *args):
+        # อัปเดตขนาดและตำแหน่งของพื้นหลัง
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
+        
+        # วาดพื้นหลังแบบตาราง (grid) ใหม่เมื่อขนาดหน้าจอเปลี่ยน
+        self.draw_grid()
+    
+    def draw_grid(self):
+        # วาดตาราง (grid) เป็นพื้นหลังสำหรับเกม
+        with self.game_widget.canvas.before:
+            Color(0.2, 0.2, 0.2, 0.2)  # สีเทาโปร่งใส
+            cell_size = self.snake_size
+            
+            # วาดเส้นแนวนอน
+            for y in range(0, Window.height, cell_size):
+                Rectangle(pos=(0, y), size=(Window.width, 1))
+            
+            # วาดเส้นแนวตั้ง
+            for x in range(0, Window.width, cell_size):
+                Rectangle(pos=(x, 0), size=(1, Window.height))
     
     def start_game(self):
         # เมธอดนี้จะถูกเรียกเมื่อกดปุ่ม Start หรือเลือกความยาก
@@ -218,6 +279,8 @@ class SnakeGame(Screen):
         
         self.snake = [new_head] + self.snake[:-1]
         self.game_widget.canvas.clear()
+        # วาดพื้นหลังตาราง (grid) ใหม่เมื่อลบแคนวาส
+        self.draw_grid()
         self.draw_snake()
         self.draw_food()
         
@@ -265,18 +328,21 @@ class SnakeGame(Screen):
         self.level = 1
         self.update_label.text = "Score: 0"
         self.level_label.text = "Level: 1"
+    
+    # Clear both the main canvas and the background canvas
         self.game_widget.canvas.clear()
+        self.game_widget.canvas.before.clear()
+    
         self.paused = True  # ยังคงให้เกมหยุดอยู่จนกว่าจะมีการเรียก start_game()
         self.pause_layout.opacity = 0
         self.timer = 0
         self.timer_label.text = "Time: 0"
         Clock.unschedule(self.update_event)
-        
-        # วาดงูและอาหารเริ่มต้น
-        self.draw_snake()
-        self.draw_food()
-        
-        # ลบ "GAME OVER" label ถ้ามี
+    
+    # วาดพื้นหลังตาราง (grid) ใหม่
+        self.draw_grid()
+        self.start_game()
+    # ลบ "GAME OVER" label ถ้ามี
         for widget in self.children:
             if isinstance(widget, Label) and widget.text == "GAME OVER":
                 self.remove_widget(widget)
@@ -293,16 +359,26 @@ class SnakeGame(Screen):
                 head_texture = Image(source="assets/snake_head.png").texture
                 x, y = self.snake[0]
                 Rectangle(texture=head_texture, pos=(x * self.snake_size, y * self.snake_size),
-                          size=(self.snake_size, self.snake_size))
+                      size=(self.snake_size, self.snake_size))
 
                 # โหลด texture ตัวงู
                 body_texture = Image(source="assets/snake_body.png").texture
                 for x, y in self.snake[1:]:
                     Rectangle(texture=body_texture, pos=(x * self.snake_size, y * self.snake_size),
-                              size=(self.snake_size, self.snake_size))
+                          size=(self.snake_size, self.snake_size))
 
             except Exception as e:
                 print(f"Error loading snake texture: {e}")  # แสดงข้อผิดพลาดถ้ามีปัญหา
+                # ใช้สีแทนถ้าไม่สามารถโหลดรูปได้
+                Color(0, 1, 0, 1)  # สีเขียว
+                x, y = self.snake[0]
+                Rectangle(pos=(x * self.snake_size, y * self.snake_size),
+                      size=(self.snake_size, self.snake_size))
+                
+                Color(0, 0.8, 0, 1)  # สีเขียวเข้ม
+                for x, y in self.snake[1:]:
+                    Rectangle(pos=(x * self.snake_size, y * self.snake_size),
+                          size=(self.snake_size, self.snake_size))
 
     def draw_food(self):
         with self.game_widget.canvas:
@@ -311,11 +387,15 @@ class SnakeGame(Screen):
                 food_texture = Image(source="assets/Apple.webp").texture
                 x, y = self.food
                 Rectangle(texture=food_texture, 
-                      pos=(x * self.snake_size, y * self.snake_size),
+                      pos=(x * self.snake_size, y * self.snake_size),   
                       size=(self.snake_size, self.snake_size))
             except Exception as e:
                 print(f"Error loading food texture: {e}")  # แสดงข้อผิดพลาดหากมี
-
+                # ใช้สีแทนถ้าไม่สามารถโหลดรูปได้
+                Color(1, 0, 0, 1)  # สีแดง
+                x, y = self.food
+                Rectangle(pos=(x * self.snake_size, y * self.snake_size),
+                      size=(self.snake_size, self.snake_size))
 
     def on_key_down(self, instance, key, *args):
         if key == 112:  # 112 คือรหัสของปุ่ม P
@@ -348,12 +428,13 @@ class SnakeGame(Screen):
                     self.left_sound.play()
 
     def generate_food(self):
-        return (random.randint(0, 19), random.randint(0, 19))
+        return (random.randint(0, (Window.width // self.snake_size) - 1),
+                random.randint(0, (Window.height // self.snake_size) - 1))
 
 class SnakeApp(App):
     def build(self):
         sm = ScreenManager()
-        sm.add_widget(MenuScreen(name='menu'))
+        sm.add_widget(MenuScreen(name='menu'))  
         sm.add_widget(SettingScreen(name='setting'))
         sm.add_widget(SnakeGame(name='game'))
         return sm
