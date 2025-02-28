@@ -12,6 +12,7 @@ from kivy.uix.slider import Slider
 from kivy.core.audio import SoundLoader
 from kivy.animation import Animation
 from kivy.uix.image import Image
+from kivy.uix.anchorlayout import AnchorLayout
 
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
@@ -56,36 +57,45 @@ class SettingScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.click_sound = SoundLoader.load('assets/click.mp3')
-        layout = BoxLayout(orientation='vertical', spacing=10, padding=50)
-        layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
 
-        volume_label = Label(text='Volume', font_size=24)
-        self.volume_slider = Slider(min=0, max=1, value=0.5, size_hint=(0.8, None), height=40)
+        # Layout หลัก
+        main_layout = BoxLayout(orientation='vertical', padding=20, spacing=20)
 
-        easy_button = Button(text='Easy', font_size=24, size_hint=(None, None), size=(200, 50))
-        medium_button = Button(text='Medium', font_size=24, size_hint=(None, None), size=(200, 50))
-        hard_button = Button(text='Hard', font_size=24, size_hint=(None, None), size=(200, 50))
-        back_button = Button(text='Back to Menu', font_size=24, size_hint=(None, None), size=(200, 50))
-        
+        # Layout สำหรับปรับเสียง
+        volume_layout = BoxLayout(orientation='horizontal', size_hint=(None, None), size=(400, 50), spacing=20)
+        volume_label = Label(text='Volume', font_size=24, size_hint=(None, None), size=(100, 50))
+        self.volume_slider = Slider(min=0, max=1, value=0.5, size_hint=(1, None), height=40)
+        volume_layout.add_widget(volume_label)
+        volume_layout.add_widget(self.volume_slider)
+
+        # Layout สำหรับปุ่ม
+        button_layout = BoxLayout(orientation='vertical', size_hint=(None, None), size=(300, 300), spacing=15)
+        button_style = {'font_size': 24, 'size_hint': (None, None), 'size': (250, 50)}
+
+        easy_button = Button(text='Easy', **button_style)
+        medium_button = Button(text='Medium', **button_style)
+        hard_button = Button(text='Hard', **button_style)
+        back_button = Button(text='Back to Menu', **button_style)
+
         easy_button.bind(on_release=lambda x: self.start_game('easy'))
         medium_button.bind(on_release=lambda x: self.start_game('medium'))
         hard_button.bind(on_release=lambda x: self.start_game('hard'))
         back_button.bind(on_release=self.go_to_menu)
-        
-        slider_layout = BoxLayout(orientation='horizontal', size_hint=(None, None), size=(300, 50))
-        slider_layout.add_widget(volume_label)
-        slider_layout.add_widget(self.volume_slider)
 
-        button_layout = BoxLayout(orientation='vertical', size_hint=(None, None), size=(300, 300))
         button_layout.add_widget(easy_button)
         button_layout.add_widget(medium_button)
         button_layout.add_widget(hard_button)
         button_layout.add_widget(back_button)
 
-        main_layout = BoxLayout(orientation='vertical', spacing=10, padding=50)
-        main_layout.add_widget(slider_layout)
-        main_layout.add_widget(button_layout)
+        # ใช้ AnchorLayout เพื่อจัดกึ่งกลางหน้าจอ
+        center_layout = AnchorLayout(anchor_x='center', anchor_y='center')
+        content_layout = BoxLayout(orientation='vertical', spacing=30, size_hint=(None, None), size=(400, 400))
 
+        content_layout.add_widget(volume_layout)
+        content_layout.add_widget(button_layout)
+        center_layout.add_widget(content_layout)
+
+        main_layout.add_widget(center_layout)
         self.add_widget(main_layout)
 
     def play_click_sound(self):
