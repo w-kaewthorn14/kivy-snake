@@ -22,7 +22,7 @@ class MenuScreen(Screen):
         
         # เพิ่มพื้นหลังให้กับหน้าเมนู
         with self.canvas.before:
-            self.bg_texture = Image(source='assets/snake_body.png').texture
+            self.bg_texture = Image(source='assets/background.png').texture
             self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
         
         # ผูกการปรับขนาดหน้าจอกับพื้นหลัง
@@ -78,7 +78,7 @@ class SettingScreen(Screen):
         
         # เพิ่มพื้นหลังให้กับหน้าตั้งค่า
         with self.canvas.before:
-            self.bg_texture = Image(source='assets/snake_body.png').texture
+            self.bg_texture = Image(source='assets/background.png').texture
             #self.bg_texture.wrap = 'repeat'
             self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
         
@@ -153,7 +153,7 @@ class SnakeGame(Screen):
         
         # เพิ่มพื้นหลังให้กับหน้าเกม
         with self.canvas.before:
-            self.bg_texture = Image(source='assets/snake_body.png').texture
+            self.bg_texture = Image(source='assets/background.png').texture
             #self.bg_texture.wrap = 'repeat'
             self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
         
