@@ -59,7 +59,7 @@ class MenuScreen(Screen):
     def start_game(self, instance):
         self.play_click_sound()
         game_screen = self.manager.get_screen('game')
-        game_screen.reset_game(None)
+        game_screen.reset_game(None)  # แก้ไขปัญหา reset_game
         game_screen.start_game()
         self.manager.current = 'game'
     
@@ -216,7 +216,7 @@ class SnakeGame(Screen):
         resume_button = Button(text='Play Again', font_size=24, size_hint=(None, None), size=(200, 50))
         menu_button = Button(text='Go to Menu', font_size=24, size_hint=(None, None), size=(200, 50))
         
-        resume_button.bind(on_release=self.reset_game)
+        resume_button.bind(on_release=self.reset_game)  # Fixed this line to connect to reset_game
         menu_button.bind(on_release=self.go_to_menu)
         
         self.pause_layout.add_widget(resume_button)
@@ -245,7 +245,7 @@ class SnakeGame(Screen):
     
     def set_difficulty(self, difficulty):
         if difficulty == 'easy':
-            self.speed = 0.2
+            self.speed = 0.15
             self.move_speed = 3
         elif difficulty == 'medium':
             self.speed = 0.1
@@ -338,7 +338,7 @@ class SnakeGame(Screen):
             self.go_to_menu(None)
     
     def update_game_logic(self, dt):
-        # อัพเดทลอจิกเกมเหมือนเดิม แต่ไม่วาดงูที่นี่
+        # อัพเดทลอจิกเกมเหมือนเดิม 
         if self.paused:
             return
         
@@ -358,21 +358,39 @@ class SnakeGame(Screen):
             self.game_over_screen()
             return
         
-        # อัพเดทตำแหน่งงูใน grid
-        self.snake = [new_head] + self.snake[:-1]
-        
-        # เพิ่มตำแหน่งเป้าหมายใหม่ที่งูจะเคลื่อนที่ไป
-        target_x = new_head[0] * self.snake_size
-        target_y = new_head[1] * self.snake_size
-        
-        # เพิ่มตำแหน่งเป้าหมายใหม่ไปยัง smooth_positions
-        if len(self.smooth_positions) < len(self.snake):
-            self.smooth_positions.append(self.smooth_positions[-1])
-        
         # ตรวจสอบว่างูกินอาหารหรือไม่
         if new_head == self.food:
-            self.snake.append(self.snake[-1])
-            self.smooth_positions.append(self.smooth_positions[-1])  # เพิ่มตำแหน่งสำหรับส่วนที่เพิ่ม
+            # เพิ่มส่วนท้ายสุดที่จะมีต่อกับส่วนที่มีอยู่
+            last_segment = self.snake[-1]
+            
+            # อัพเดทตำแหน่งงูใน grid โดยยังไม่ตัดหางออก
+            self.snake = [new_head] + self.snake
+            
+            # คำนวณตำแหน่งที่เหมาะสมสำหรับส่วนใหม่ (ถัดจากส่วนสุดท้าย)
+            if len(self.smooth_positions) >= 2:
+                # คำนวณทิศทางจากส่วนก่อนสุดท้ายไปยังส่วนสุดท้าย
+                last_x, last_y = self.smooth_positions[-1]
+                second_last_x, second_last_y = self.smooth_positions[-2]
+                
+                dx = last_x - second_last_x
+                dy = last_y - second_last_y
+                distance = (dx**2 + dy**2)**0.5
+                
+                if distance > 0:
+                    # ต่อส่วนใหม่ในทิศทางเดียวกัน
+                    new_segment_x = last_x + (dx / distance * self.snake_size)
+                    new_segment_y = last_y + (dy / distance * self.snake_size)
+                else:
+                    # ถ้าไม่มีทิศทางชัดเจน ให้ต่อไปด้านหลัง
+                    new_segment_x = last_x
+                    new_segment_y = last_y - self.snake_size
+            else:
+                # กรณีที่มีเพียงส่วนเดียว
+                new_segment_x = last_segment[0] * self.snake_size
+                new_segment_y = last_segment[1] * self.snake_size
+            
+            # เพิ่มตำแหน่งใหม่ในลิสต์
+            self.smooth_positions.append((new_segment_x, new_segment_y))
             
             self.score += 1
             self.update_label.text = f"Score: {self.score}"
@@ -391,11 +409,21 @@ class SnakeGame(Screen):
                 self.speed = max(self.speed - 0.01, 0.02)  # Increase speed, but not less than 0.02
                 Clock.unschedule(self.update_event)
                 self.update_event = Clock.schedule_interval(self.update_game_logic, self.speed)
+        else:
+            # อัพเดทตำแหน่งงูใน grid (เลื่อนงูตามปกติ)
+            self.snake = [new_head] + self.snake[:-1]
+            
+            # ปรับให้ smooth_positions มีจำนวนเท่ากับ snake
+            if len(self.smooth_positions) > len(self.snake):
+                self.smooth_positions = self.smooth_positions[:len(self.snake)]
     
     def update_animation(self, dt):
         # อัพเดทการเคลื่อนที่แบบราบรื่น
         if self.paused:
             return
+        
+        # กำหนดระยะห่างระหว่างส่วนต่างๆ ของงู
+        segment_distance = self.snake_size * 0.95  # ระยะห่างที่เหมาะสมระหว่างส่วนของงู
         
         # อัพเดทตำแหน่งหัวงู
         target_x = self.snake[0][0] * self.snake_size
@@ -423,22 +451,39 @@ class SnakeGame(Screen):
         
         self.smooth_positions[0] = (new_x, new_y)
         
-        # อัพเดทตำแหน่งส่วนอื่นๆ ของงู (แต่ละส่วนจะตามส่วนหน้า)
-        for i in range(1, len(self.smooth_positions)):
-            target_x, target_y = self.smooth_positions[i-1]
+        # ตรวจสอบว่าจำนวนของ smooth_positions ตรงกับจำนวนของ snake
+        while len(self.smooth_positions) < len(self.snake):
+            # ถ้า smooth_positions มีน้อยกว่า snake ให้เพิ่มตำแหน่ง
+            last_pos = self.smooth_positions[-1]
+            self.smooth_positions.append(last_pos)
+        
+        # ปรับ smooth_positions ให้มีจำนวนเท่ากับ snake (กรณีมีมากเกินไป)
+        while len(self.smooth_positions) > len(self.snake):
+            self.smooth_positions.pop()
+        
+        # อัพเดทตำแหน่งส่วนอื่นๆ ของงู (body segments) ให้เคลื่อนที่ตาม grid
+        for i in range(1, len(self.snake)):
+            # เป้าหมายคือตำแหน่ง grid ของส่วนนี้
+            target_x = self.snake[i][0] * self.snake_size
+            target_y = self.snake[i][1] * self.snake_size
             curr_x, curr_y = self.smooth_positions[i]
             
+            # คำนวณระยะทางจากตำแหน่งปัจจุบันไปยังตำแหน่งเป้าหมาย
             dx = target_x - curr_x
             dy = target_y - curr_y
+            distance = (dx**2 + dy**2)**0.5
             
-            # เงื่อนไขเช่นเดียวกับส่วนหัว
-            if abs(dx) < self.move_speed and abs(dy) < self.move_speed:
+            # กำหนดความเร็วในการเคลื่อนที่ (อาจจะเร็วกว่าหัวงูเล็กน้อยเพื่อให้ไม่ล้าหลัง)
+            body_speed = self.move_speed * 1.2  # เร็วกว่าหัวงูเล็กน้อย
+            
+            # หากตำแหน่งปัจจุบันใกล้เคียงกับเป้าหมายแล้ว ให้เท่ากับเป้าหมายเลย
+            if distance < body_speed:
                 new_x, new_y = target_x, target_y
             else:
-                distance = (dx**2 + dy**2)**0.5
-                if distance > 0:
-                    move_x = dx / distance * self.move_speed
-                    move_y = dy / distance * self.move_speed
+                # คำนวณทิศทางและระยะทางในการเคลื่อนที่
+                if distance > 0:  # ป้องกันการหารด้วยศูนย์
+                    move_x = dx / distance * body_speed
+                    move_y = dy / distance * body_speed
                 else:
                     move_x, move_y = 0, 0
                 
@@ -510,40 +555,42 @@ class SnakeGame(Screen):
         # Clear both the main canvas and the background canvas
         self.game_widget.canvas.clear()
         self.game_widget.canvas.before.clear()
+        
+        # Re-add the background
+        with self.canvas.before:
+            self.bg_texture = Image(source='assets/background.png').texture
+            self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
     
-        self.paused = True
+        self.paused = False  # Changed from True to False
         self.pause_layout.opacity = 0
         self.timer = 0
         self.timer_label.text = "Time: 0"
         Clock.unschedule(self.update_event)
         Clock.unschedule(self.animation_event)
     
-        self.start_game()
         # ลบ "GAME OVER" label ถ้ามี
         for widget in self.children:
             if isinstance(widget, Label) and widget.text == "GAME OVER":
                 self.remove_widget(widget)
-
-# เพิ่ม SnakeApp เพื่อรัน application
+        self.start_game()        
 class SnakeApp(App):
-    def build(self):
-        # สร้าง screen manager
-        sm = ScreenManager()
+        def build(self):
+                # สร้าง ScreenManager สำหรับจัดการหน้าจอต่างๆ
+            sm = ScreenManager()
         
-        # สร้างหน้าจอต่างๆ
-        menu_screen = MenuScreen(name='menu')
-        setting_screen = SettingScreen(name='setting')
-        game_screen = SnakeGame(name='game')
+                # เพิ่มหน้าจอต่างๆ เข้าไปใน ScreenManager
+            menu_screen = MenuScreen(name='menu')
+            setting_screen = SettingScreen(name='setting')
+            game_screen = SnakeGame(name='game')
         
-        # เพิ่มหน้าจอเข้า screen manager
-        sm.add_widget(menu_screen)
-        sm.add_widget(setting_screen)
-        sm.add_widget(game_screen)
+            sm.add_widget(menu_screen)
+            sm.add_widget(setting_screen)
+            sm.add_widget(game_screen)
         
-        # เริ่มที่หน้าเมนู
-        sm.current = 'menu'
+                # ตั้งค่าให้เริ่มต้นที่หน้า menu
+            sm.current = 'menu'
         
-        return sm
+            return sm
 
 if __name__ == '__main__':
     SnakeApp().run()
