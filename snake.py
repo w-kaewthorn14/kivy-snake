@@ -193,6 +193,8 @@ class SnakeGame(Screen):
         self.snake = [(10, 10)]
         self.snake_direction = (1, 0)
         self.food = (random.randint(0, 19), random.randint(0, 19))
+        self.food_items = []
+        self.food_count = 1
         self.score = 0
         self.best_score = 0
         self.snake_size = 35
@@ -264,6 +266,7 @@ class SnakeGame(Screen):
         Clock.unschedule(self.update_event)  # ยกเลิกการอัปเดตก่อนหน้า (ถ้ามี)
         Clock.unschedule(self.animation_event)  # ยกเลิกการอัพเดทแอนิเมชั่นก่อนหน้า
         
+        self.generate_food_items()
         # แยกการอัพเดทออกเป็น 2 ส่วน:
         # 1. อัพเดทลอจิกเกม (ตำแหน่งงู, ตรวจสอบการชน, ฯลฯ)
         self.update_event = Clock.schedule_interval(self.update_game_logic, self.speed)
@@ -275,12 +278,15 @@ class SnakeGame(Screen):
         if difficulty == 'easy':
             self.speed = 0.15
             self.move_speed = 3
+            self.food_count = 1
         elif difficulty == 'medium':
             self.speed = 0.1
             self.move_speed = 5
+            self.food_count = 3
         elif difficulty == 'hard':
             self.speed = 0.05
             self.move_speed = 10
+            self.food_count = 5
     
     def generate_food(self):
         # สร้างตำแหน่งอาหารใหม่ที่ไม่อยู่ในตำแหน่งงู
@@ -290,9 +296,16 @@ class SnakeGame(Screen):
         # สร้างตำแหน่งสุ่ม และตรวจสอบว่าไม่ซ้อนทับกับงู
         while True:
             food = (random.randint(0, max_x), random.randint(0, max_y))
-            if food not in self.snake:
+            if food not in self.snake and food not in self.food_items:
                 return food
-    
+    def generate_food_items(self):
+        # ล้างรายการอาหารเดิม
+        self.food_items = []
+        
+        # สร้างอาหารใหม่ตามจำนวนที่กำหนด
+        for _ in range(self.food_count):
+            self.food_items.append(self.generate_food())
+            
     def game_over_screen(self):
         self.paused = True
         
@@ -387,10 +400,11 @@ class SnakeGame(Screen):
             return
         
         # ตรวจสอบว่างูกินอาหารหรือไม่
-        if new_head == self.food:
+        if new_head in self.food_items:  # เปลี่ยนจาก new_head == self.food_items เป็น new_head in self.food_items
+            food_index = self.food_items.index(new_head)
             # เพิ่มส่วนท้ายสุดที่จะมีต่อกับส่วนที่มีอยู่
             last_segment = self.snake[-1]
-            
+        
             # อัพเดทตำแหน่งงูใน grid โดยยังไม่ตัดหางออก
             self.snake = [new_head] + self.snake
             
@@ -428,7 +442,10 @@ class SnakeGame(Screen):
             if self.eat_sound:
                 self.eat_sound.volume = self.manager.get_screen('setting').volume_slider.value
                 self.eat_sound.play()
-            self.food = self.generate_food()
+            
+            # ลบอาหารที่กินแล้วและสร้างอาหารใหม่แทน
+            self.food_items.pop(food_index)
+            self.food_items.append(self.generate_food())
             
             # Increase level every 5 points
             if self.score % 5 == 0:
@@ -556,10 +573,11 @@ class SnakeGame(Screen):
             try:
                 # โหลด texture ของอาหาร (แอปเปิล)
                 food_texture = Image(source="assets/Apple.webp").texture
-                x, y = self.food
-                Rectangle(texture=food_texture, 
-                      pos=(x * self.snake_size, y * self.snake_size),   
-                      size=(self.snake_size, self.snake_size))
+                for food_pos in self.food_items:
+                    x, y = food_pos
+                    Rectangle(texture=food_texture, 
+                        pos=(x * self.snake_size, y * self.snake_size),   
+                        size=(self.snake_size, self.snake_size))
             except Exception as e:
                 print(f"Error loading food texture: {e}")
                 # ใช้สีแทนถ้าไม่สามารถโหลดรูปได้
@@ -567,11 +585,14 @@ class SnakeGame(Screen):
                 x, y = self.food
                 Rectangle(pos=(x * self.snake_size, y * self.snake_size),
                       size=(self.snake_size, self.snake_size))
+                
+                
     
     def reset_game(self, instance):
         self.snake = [(10, 10)]
         self.snake_direction = (1, 0)
-        self.food = self.generate_food()
+        self.food_items = []  # เคลียร์รายการอาหารเดิม
+        self.generate_food_items()
         self.score = 0
         self.level = 1
         self.update_label.text = "Score: 0"
