@@ -209,28 +209,66 @@ class SnakeGame(Screen):
         self.update_event = None
         self.animation_event = None  # เพิ่มตัวแปรสำหรับการอัปเดตแบบ animation
         
-        # ส่วนอื่นของ __init__ คงเดิม
-        self.best_score_label = Label(text="Best: 0", font_size=20,
-                                      size_hint=(None, None), size=(100, 40),
-                                      pos=(10, Window.height - 30))
-        self.update_label = Label(text="Score: 0", font_size=20,
-                                  size_hint=(None, None), size=(100, 40),
-                                  pos=(10, Window.height - 60))
-        
-        self.timer = 0
-        self.timer_label = Label(text="Time: 0", font_size=20,
-                                 size_hint=(None, None), size=(100, 40),
-                                 pos=(Window.width - 110, Window.height - 30))
-        
-        self.level_label = Label(text="Level: 1", font_size=20,
-                                 size_hint=(None, None), size=(100, 40),
-                                 pos=(Window.width - 110, Window.height - 60))
-        
-        self.add_widget(self.best_score_label)
-        self.add_widget(self.update_label)
-        self.add_widget(self.timer_label)
-        self.add_widget(self.level_label)
-        
+        self.stats_box = BoxLayout(
+        orientation='vertical',
+        size_hint=(None, None),
+        size=(150, 120),
+        pos=(0, 0),  # Bottom-left position
+        padding=5
+        )
+
+        # Add a background to the stats box
+        with self.stats_box.canvas.before:
+            Color(0, 0, 0, 1)  # Semi-transparent black
+            self.stats_bg = Rectangle(pos=self.stats_box.pos, size=self.stats_box.size)
+
+        # Bind the position and size of the box to the background
+        self.stats_box.bind(pos=self._update_stats_bg, size=self._update_stats_bg)
+
+        # Create the labels with consistent styling
+        self.best_score_label = Label(
+            text="Best Score: 0", 
+            font_size=18,
+            halign='left',
+            valign='middle',
+            size_hint=(1, 1)
+        )
+
+        self.update_label = Label(
+            text="Score: 0", 
+            font_size=18,
+            halign='left',
+            valign='middle',
+            size_hint=(1, 1)
+        )
+
+        self.timer_label = Label(
+            text="Time: 0", 
+            font_size=18,
+            halign='left',
+            valign='middle',
+            size_hint=(1, 1)
+        )
+
+        self.level_label = Label(
+            text="Level: 1", 
+            font_size=18,
+            halign='left',
+            valign='middle',
+            size_hint=(1, 1)
+        )
+
+        # Add labels to the box
+        self.stats_box.add_widget(self.best_score_label)
+        self.stats_box.add_widget(self.update_label)
+        self.stats_box.add_widget(self.timer_label)
+        self.stats_box.add_widget(self.level_label)
+
+        # Add the stats box to the game screen
+        self.add_widget(self.stats_box)
+
+        # Add this method to update the background of the stats box
+
         self.eat_sound = SoundLoader.load('assets/eat_sound.mp3')
         self.game_over_sound = SoundLoader.load('assets/game_over.mp3')
         self.up_sound = SoundLoader.load('assets/up.mp3')
@@ -254,6 +292,12 @@ class SnakeGame(Screen):
         self.add_widget(self.pause_layout)
         
         Window.bind(on_key_down=self.on_key_down)
+
+    def _update_stats_bg(self, instance, value):
+        self.stats_bg.pos = instance.pos
+        self.stats_bg.size = instance.size
+        
+
     
     def _update_bg(self, *args):
         # อัปเดตขนาดและตำแหน่งของพื้นหลัง
