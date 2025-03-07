@@ -333,13 +333,25 @@ class SnakeGame(Screen):
             self.food_count = 5
     
     def generate_food(self):
-        # สร้างตำแหน่งอาหารใหม่ที่ไม่อยู่ในตำแหน่งงู
+        # สร้างตำแหน่งอาหารใหม่ที่ไม่อยู่ในตำแหน่งงูและไม่ทับกับ stats box
         max_x = (Window.width // self.snake_size) - 1
         max_y = (Window.height // self.snake_size) - 1
         
-        # สร้างตำแหน่งสุ่ม และตรวจสอบว่าไม่ซ้อนทับกับงู
+        # คำนวณพื้นที่ของ stats box (แปลงเป็นหน่วย grid)
+        stats_width = self.stats_box.size[0] // self.snake_size + 1  # +1 เพื่อความปลอดภัย
+        stats_height = self.stats_box.size[1] // self.snake_size + 1  # +1 เพื่อความปลอดภัย
+        
+        # สร้างตำแหน่งสุ่ม และตรวจสอบว่าไม่ซ้อนทับกับงูและไม่อยู่ใน stats box
         while True:
-            food = (random.randint(0, max_x), random.randint(0, max_y))
+            food_x = random.randint(0, max_x)
+            food_y = random.randint(0, max_y)
+            food = (food_x, food_y)
+            
+            # ตรวจสอบว่าไม่อยู่ใน stats box (ซ้ายล่าง)
+            if food_x < stats_width and food_y < stats_height:
+                continue  # อยู่ใน stats box, ลองใหม่
+                
+            # ตรวจสอบว่าไม่ทับซ้อนกับงูและอาหารอื่น
             if food not in self.snake and food not in self.food_items:
                 return food
     def generate_food_items(self):
