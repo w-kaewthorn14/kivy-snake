@@ -654,6 +654,14 @@ class SnakeGame(Screen):
         self.update_label.text = "Score: 0"
         self.level_label.text = "Level: 1"
         
+        # รีเซ็ตความเร็วตามระดับความยากที่เลือกไว้
+        if hasattr(self, 'current_difficulty'):
+            self.set_difficulty(self.current_difficulty)
+        else:
+        # ค่าเริ่มต้นถ้าไม่มีการเลือกความยาก
+            self.speed = 0.1
+            self.move_speed = 5
+            
         # รีเซ็ตตำแหน่งแบบราบรื่น
         self.smooth_positions = [(10 * self.snake_size, 10 * self.snake_size)]
     
