@@ -104,9 +104,9 @@ class SettingScreen(Screen):
         hard_button = Button(text='Hard', **button_style)
         back_button = Button(text='Back to Menu', **button_style)
 
-        easy_button.bind(on_release=lambda x: self.start_game('easy'))
-        medium_button.bind(on_release=lambda x: self.start_game('medium'))
-        hard_button.bind(on_release=lambda x: self.start_game('hard'))
+        easy_button.bind(on_release=lambda x: self.set_difficulty('easy'))
+        medium_button.bind(on_release=lambda x: self.set_difficulty('medium'))
+        hard_button.bind(on_release=lambda x: self.set_difficulty('hard'))
         back_button.bind(on_release=self.go_to_menu)
 
         button_layout.add_widget(easy_button)
@@ -142,7 +142,35 @@ class SettingScreen(Screen):
         game_screen.set_difficulty(difficulty)
         game_screen.start_game()
         self.manager.current = 'game'
+    def set_difficulty(self, difficulty):
+        # เปลี่ยนจาก start_game เป็น set_difficulty
+        self.play_click_sound()
+        game_screen = self.manager.get_screen('game')
+        # เก็บค่าความยากไว้โดยไม่เริ่มเกมทันที
+        game_screen.set_difficulty(difficulty)
+        # แสดงข้อความแจ้งให้กับผู้เล่น
+        self.show_confirmation(difficulty)
     
+    def show_confirmation(self, difficulty):
+        # สร้างและแสดงข้อความยืนยันการตั้งค่า
+        if hasattr(self, 'confirm_label'):
+            self.remove_widget(self.confirm_label)
+        
+        self.confirm_label = Label(
+            text=f"Difficulty set to {difficulty}! Press 'Start Game' on Menu to play.",
+            font_size=20,
+            size_hint=(None, None),
+            size=(500, 50),
+            pos_hint={'center_x': 0.5, 'center_y': 0.2}
+        )
+        self.add_widget(self.confirm_label)
+        
+        # ตั้งเวลาให้ข้อความหายไปหลังจาก 3 วินาที
+        Clock.schedule_once(self.remove_confirmation, 3)
+    
+    def remove_confirmation(self, dt):
+        if hasattr(self, 'confirm_label'):
+            self.remove_widget(self.confirm_label)
     def go_to_menu(self, instance):
         self.play_click_sound()
         self.manager.current = 'menu'
