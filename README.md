@@ -48,6 +48,8 @@ pip install kivy
 **ขั้นตอนที่ 2:** ดาวน์โหลดเกม
 ```bash
 git clone https://github.com/w-kaewthorn14/kivy-snake.git
+```
+```bash
 cd snake.py
 ```
 ## วิธีการเล่น
