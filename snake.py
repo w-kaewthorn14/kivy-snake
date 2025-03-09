@@ -20,31 +20,95 @@ class MenuScreen(Screen):
         super().__init__(**kwargs)
         self.click_sound = SoundLoader.load('assets/click.mp3')
         
-        # เพิ่มพื้นหลังให้กับหน้าเมนู
         with self.canvas.before:
             self.bg_texture = Image(source='assets/background.png').texture
             self.bg_rect = Rectangle(texture=self.bg_texture, pos=self.pos, size=Window.size)
         
-        # ผูกการปรับขนาดหน้าจอกับพื้นหลัง
+ 
         self.bind(size=self._update_bg, pos=self._update_bg)
         
-        layout = BoxLayout(orientation='vertical', spacing=10, padding=50, size_hint=(None, None))
-        layout.size = (300, 200)
-        layout.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
-
-        start_button = Button(text='Start Game', font_size=24, size_hint=(None, None), size=(200, 50))
-        setting_button = Button(text='Setting', font_size=24, size_hint=(None, None), size=(200, 50))
-        exit_button = Button(text='Exit', font_size=24, size_hint=(None, None), size=(200, 50))
+        main_layout = BoxLayout(orientation='vertical', spacing=20, padding=50, pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        
+        title_layout = BoxLayout(orientation='vertical', size_hint=(1, 0.4), pos_hint={'center_x': 0.5})
+        
+        title_label = Label(
+            text="Kivy Snake",
+            font_size=60,
+            bold=True,
+            color=(0.2, 0.4, 1.0, 1),  
+            size_hint=(1, 0.7),
+            halign='center'  
+        )
+        title_label.bind(size=lambda *x: setattr(title_label, 'text_size', (title_label.width, None)))
+        
+        subtitle_label = Label(
+            text="Game made by 6710110246 and 6710110391",
+            font_size=24,
+            italic=True,
+            color=(0.2, 0.4, 1.0, 1),  
+            size_hint=(1, 0.3),
+            halign='center'  
+        )
+        subtitle_label.bind(size=lambda *x: setattr(subtitle_label, 'text_size', (subtitle_label.width, None)))
+        
+        title_layout.add_widget(title_label)
+        title_layout.add_widget(subtitle_label)
+        
+        # Layout สำหรับปุ่มเมนู - ใช้ AnchorLayout แทน BoxLayout เพื่อให้จัดกลางได้ดีขึ้น
+        button_layout = BoxLayout(orientation='vertical', spacing=15, size_hint=(None, None))
+        button_layout.size = (300, 200)
+        button_layout.pos_hint = {'center_x': 0.5}
+        
+        # ปรับขนาดปุ่มให้เท่ากันและให้อยู่ตรงกลาง
+        start_button = Button(
+            text='Start Game', 
+            font_size=24, 
+            size_hint=(None, None), 
+            size=(200, 50),
+            pos_hint={'center_x': 0.5}
+        )
+        
+        setting_button = Button(
+            text='Setting', 
+            font_size=24, 
+            size_hint=(None, None), 
+            size=(200, 50),
+            pos_hint={'center_x': 0.5}
+        )
+        
+        exit_button = Button(
+            text='Exit', 
+            font_size=24, 
+            size_hint=(None, None), 
+            size=(200, 50),
+            pos_hint={'center_x': 0.5}
+        )
         
         start_button.bind(on_release=self.start_game)
         setting_button.bind(on_release=self.open_setting)
         exit_button.bind(on_release=self.exit_game)
         
-        layout.add_widget(start_button)
-        layout.add_widget(setting_button)
-        layout.add_widget(exit_button)
+        button_layout.add_widget(start_button)
+        button_layout.add_widget(setting_button)
+        button_layout.add_widget(exit_button)
         
-        self.add_widget(layout)
+        # เพิ่ม AnchorLayout สำหรับปุ่มให้อยู่ตรงกลาง
+        button_container = AnchorLayout(anchor_x='center', anchor_y='center', size_hint=(1, 0.6))
+        button_container.add_widget(button_layout)
+        
+        main_layout.add_widget(title_layout)
+        main_layout.add_widget(button_container)
+        
+        # ใช้ AnchorLayout เป็น root widget เพื่อให้ main_layout อยู่ตรงกลางหน้าจอ
+        root_layout = AnchorLayout(anchor_x='center', anchor_y='center')
+        root_layout.add_widget(main_layout)
+        
+        self.add_widget(root_layout)
+    
+    # Missing method needed for background update - add this
+    def _update_bg(self, instance, value):
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
     
     def _update_bg(self, *args):
         # อัปเดตขนาดและตำแหน่งของพื้นหลัง
