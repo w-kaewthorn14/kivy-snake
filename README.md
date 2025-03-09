@@ -50,7 +50,7 @@ pip install kivy
 git clone https://github.com/w-kaewthorn14/kivy-snake.git
 ```
 ```bash
-cd snake.py
+cd kivy-snake
 ```
 ## วิธีการเล่น
 รันคำสั่งนี้เพื่อเริ่มเกม
