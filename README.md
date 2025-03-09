@@ -53,8 +53,8 @@ git clone https://github.com/w-kaewthorn14/kivy-snake.git
 cd snake.py
 ```
 ## วิธีการเล่น
+รันคำสั่งนี้เพื่อเริ่มเกม
 ```bash
-#รันคำสั่งนี้เพื่อเริ่มเกม
 python snake.py
 ```
 
